@@ -12,16 +12,23 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     :root {
-      --bg-primary: #09090b;      /* Zinc 950 */
-      --bg-secondary: #18181b;    /* Zinc 900 */
-      --bg-tertiary: #27272a;     /* Zinc 800 */
-      --border-color: #27272a;
-      --text-primary: #fafafa;
-      --text-secondary: #a1a1aa;
-      --text-muted: #71717a;
-      --accent-indigo: #6366f1;
-      --accent-purple: #a855f7;
-      --accent-gradient: linear-gradient(135deg, var(--accent-indigo), var(--accent-purple));
+      --bg-primary: #f8fafc;        /* Light Slate 50 */
+      --bg-secondary: #ffffff;      /* White */
+      --bg-tertiary: #f1f5f9;       /* Light Slate 100 */
+      --border-color: #e2e8f0;      /* Light Slate 200 */
+      --border-focus: #cbd5e1;      /* Light Slate 300 */
+      
+      --text-primary: #0f172a;      /* Slate 900 */
+      --text-secondary: #475569;    /* Slate 600 */
+      --text-muted: #94a3b8;        /* Slate 400 */
+      
+      --primary-color: #007d42;     /* AISM School Green */
+      --secondary-color: #f99c1c;   /* AISM School Gold/Orange */
+      --accent-lime: #abca2b;       /* Fresh branding green */
+      
+      --accent-gradient: linear-gradient(135deg, var(--primary-color), var(--accent-lime));
+      --accent-glow: rgba(0, 125, 66, 0.08);
+      
       --font-display: 'Outfit', sans-serif;
       --font-sans: 'DM Sans', sans-serif;
     }
@@ -34,6 +41,9 @@
 
     body {
       background-color: var(--bg-primary);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(171, 202, 43, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(0, 125, 66, 0.08) 0px, transparent 50%);
       color: var(--text-primary);
       font-family: var(--font-sans);
       min-height: 100vh;
@@ -41,32 +51,9 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: 20px;
+      padding: 40px 20px;
       overflow-x: hidden;
       position: relative;
-    }
-
-    /* Ambient background glows */
-    body::before {
-      content: "";
-      position: absolute;
-      width: 400px;
-      height: 400px;
-      background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, rgba(0,0,0,0) 70%);
-      top: -100px;
-      left: -100px;
-      z-index: 0;
-    }
-
-    body::after {
-      content: "";
-      position: absolute;
-      width: 400px;
-      height: 400px;
-      background: radial-gradient(circle, rgba(168, 85, 247, 0.08) 0%, rgba(0,0,0,0) 70%);
-      bottom: -100px;
-      right: -100px;
-      z-index: 0;
     }
 
     .portal-container {
@@ -77,47 +64,55 @@
     }
 
     header {
-      margin-bottom: 50px;
+      margin-bottom: 45px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .logo-wrapper {
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .logo-wrapper img {
+      height: 70px;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.03));
     }
 
     .school-badge {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      background-color: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border-color);
+      gap: 6px;
+      background-color: rgba(0, 125, 66, 0.05);
+      border: 1px solid rgba(0, 125, 66, 0.15);
       border-radius: 30px;
-      padding: 6px 16px;
+      padding: 6px 14px;
       font-family: var(--font-display);
-      font-size: 0.8rem;
-      font-weight: 500;
+      font-size: 0.75rem;
+      font-weight: 600;
       letter-spacing: 0.05em;
       text-transform: uppercase;
-      color: var(--text-secondary);
-      margin-bottom: 20px;
-    }
-
-    .school-badge i {
-      width: 12px;
-      height: 12px;
-      color: var(--accent-indigo);
+      color: var(--primary-color);
+      margin-bottom: 16px;
     }
 
     h1 {
       font-family: var(--font-display);
-      font-size: 3rem;
+      font-size: 2.8rem;
       font-weight: 700;
-      letter-spacing: -0.02em;
+      letter-spacing: -0.025em;
+      color: #0f172a;
       margin-bottom: 12px;
-      background: linear-gradient(180deg, #fff 0%, #a1a1aa 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      line-height: 1.2;
     }
 
     .subtitle {
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       color: var(--text-secondary);
-      max-width: 600px;
+      max-width: 620px;
       margin: 0 auto;
       line-height: 1.6;
     }
@@ -127,7 +122,7 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 24px;
-      margin-bottom: 60px;
+      margin-bottom: 50px;
     }
 
     .portal-card {
@@ -141,10 +136,11 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      height: 380px;
+      height: 360px;
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
       overflow: hidden;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -2px rgba(0, 0, 0, 0.02);
       cursor: pointer;
     }
 
@@ -161,8 +157,8 @@
 
     .portal-card:hover {
       transform: translateY(-4px);
-      border-color: #3f3f46;
-      box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5);
+      border-color: rgba(0, 125, 66, 0.3);
+      box-shadow: 0 20px 40px -15px rgba(0, 125, 66, 0.1);
     }
 
     .portal-card:hover::before {
@@ -179,8 +175,8 @@
       width: 50px;
       height: 50px;
       border-radius: 12px;
-      background-color: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border-color);
+      background-color: rgba(0, 125, 66, 0.03);
+      border: 1px solid rgba(0, 125, 66, 0.08);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -188,30 +184,31 @@
     }
 
     .portal-card:hover .card-icon {
-      background-color: rgba(99, 102, 241, 0.08);
-      border-color: rgba(99, 102, 241, 0.3);
+      background-color: rgba(0, 125, 66, 0.06);
+      border-color: rgba(0, 125, 66, 0.2);
     }
 
     .card-icon i {
       width: 24px;
       height: 24px;
-      color: var(--text-secondary);
-      transition: color 0.25s ease;
+      color: var(--primary-color);
+      transition: transform 0.25s ease;
     }
 
     .portal-card:hover .card-icon i {
-      color: #818cf8;
+      transform: scale(1.05);
     }
 
     .card-title {
       font-family: var(--font-display);
-      font-size: 1.5rem;
+      font-size: 1.4rem;
       font-weight: 600;
       letter-spacing: -0.01em;
+      color: #1e293b;
     }
 
     .card-desc {
-      font-size: 0.95rem;
+      font-size: 0.92rem;
       color: var(--text-secondary);
       line-height: 1.6;
     }
@@ -221,12 +218,12 @@
       align-items: center;
       gap: 8px;
       font-family: var(--font-display);
-      font-size: 0.9rem;
-      font-weight: 500;
-      color: var(--text-primary);
-      padding: 10px 20px;
-      background-color: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border-color);
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--primary-color);
+      padding: 10px 18px;
+      background-color: rgba(0, 125, 66, 0.04);
+      border: 1px solid rgba(0, 125, 66, 0.1);
       border-radius: 8px;
       width: max-content;
       transition: all 0.25s ease;
@@ -234,8 +231,9 @@
 
     .portal-card:hover .card-action {
       background: var(--accent-gradient);
+      color: #ffffff;
       border-color: transparent;
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+      box-shadow: 0 4px 12px rgba(0, 125, 66, 0.2);
     }
 
     .card-action i {
@@ -260,7 +258,7 @@
       }
       .portal-card {
         height: auto;
-        min-height: 320px;
+        min-height: 300px;
         gap: 30px;
       }
       h1 {
@@ -272,12 +270,14 @@
 <body>
   <div class="portal-container">
     <header>
+      <div class="logo-wrapper">
+        <img src="assets/logo2.jpeg" alt="AISM Logo" onerror="this.src='assets/logo1.png'; this.onerror=function(){this.style.display='none';};">
+      </div>
       <div class="school-badge">
-        <i data-lucide="graduation-cap"></i>
         <span>Australian International School Malaysia</span>
       </div>
       <h1>Feedback & Insights Portal</h1>
-      <p class="subtitle">Welcome to the central feedback hub. Access the live onboarding survey or launch the administrative insights dashboard.</p>
+      <p class="subtitle">Welcome to AISM's central onboarding feedback portal. Access the parent survey form or open the analytics dashboard.</p>
     </header>
 
     <div class="portal-grid">
@@ -288,7 +288,7 @@
             <i data-lucide="clipboard-signature"></i>
           </div>
           <h2 class="card-title">Parent Survey Form</h2>
-          <p class="card-desc">Are you a new AISM parent? Access the anonymous onboarding survey to share your experiences regarding registration, orientation, communication, and settling in.</p>
+          <p class="card-desc">Are you a new AISM parent? Fill out our official onboarding feedback survey to share your experience regarding orientation, support staff, and school transition.</p>
         </div>
         <div class="card-action">
           <span>Start Survey</span>
@@ -303,7 +303,7 @@
             <i data-lucide="line-chart"></i>
           </div>
           <h2 class="card-title">Insights Dashboard</h2>
-          <p class="card-desc">For administrative and academic teams. View integrated Looker Studio charts, track multi-year participation trends, and chat directly with qualitative parent responses via Gemini.</p>
+          <p class="card-desc">For administrative and academic teams. View aggregated multi-year trends, response distributions, and converse directly with qualitative data using AI.</p>
         </div>
         <div class="card-action">
           <span>Launch Dashboard</span>
