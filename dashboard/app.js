@@ -85,20 +85,47 @@ window.addEventListener('DOMContentLoaded', async () => {
   });
 });
 
-// Load the compiled data.json
+// Load the compiled data.json and attempt live Google Sheet fetch
 async function loadSurveyData() {
   dbStatusDot.className = 'status-dot yellow';
   dbStatusText.textContent = 'Loading dataset...';
   
   try {
+    // 1. Fetch the baseline data.json (trends and fallback static survey data)
     const response = await fetch('data.json');
     if (!response.ok) {
       throw new Error(`Data fetch failed: status ${response.status}`);
     }
     surveyData = await response.json();
     
+    // Set UI to static loaded initially
+    let isLive = false;
+    let responseCount = surveyData.raw_survey_responses ? surveyData.raw_survey_responses.length : 0;
+    
+    // 2. Attempt to fetch live data from the Google Sheet
+    dbStatusText.textContent = 'Connecting to Google Sheet...';
+    try {
+      const sheetUrl = 'https://docs.google.com/spreadsheets/d/16A679ao7uFlsPQCPTY-JzLsF7G1Gpcfs_tKcLbjvSYU/export?format=csv&gid=834364586';
+      const sheetRes = await fetch(sheetUrl);
+      if (sheetRes.ok) {
+        const csvText = await sheetRes.text();
+        const parsedCsv = parseCSV(csvText);
+        
+        if (parsedCsv && parsedCsv.length > 1) {
+          const liveRecords = processLiveCSV(parsedCsv);
+          if (liveRecords.length > 0) {
+            surveyData.raw_survey_responses = liveRecords;
+            responseCount = liveRecords.length;
+            isLive = true;
+          }
+        }
+      }
+    } catch (sheetErr) {
+      console.warn('Could not load live Google Sheet data, using static fallback:', sheetErr);
+    }
+    
     dbStatusDot.className = 'status-dot green';
-    dbStatusText.textContent = `Database Loaded (${surveyData.raw_survey_responses ? surveyData.raw_survey_responses.length : 0} responses)`;
+    dbStatusText.textContent = `Database Loaded (${isLive ? 'Live' : 'Static'}: ${responseCount} responses)`;
     sendBtn.disabled = !currentApiKey;
     chatInput.placeholder = "Ask about NPS trends, reasons for choosing AISM, or parent feedback...";
   } catch (error) {
@@ -109,6 +136,95 @@ async function loadSurveyData() {
     
     appendMessage('bot', `⚠️ **Error loading survey database:** Could not find or parse \`data.json\`. Make sure you run the data preparation script to generate it first!`);
   }
+}
+
+// Robust CSV parser supporting quotes and escaped double quotes
+function parseCSV(text) {
+  const lines = [];
+  let row = [""];
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    const next = text[i+1];
+
+    if (c === '"') {
+      if (inQuotes && next === '"') {
+        row[row.length - 1] += '"'; // Escaped quote
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (c === ',' && !inQuotes) {
+      row.push('');
+    } else if ((c === '\r' || c === '\n') && !inQuotes) {
+      if (c === '\r' && next === '\n') {
+        i++;
+      }
+      lines.push(row);
+      row = [''];
+    } else {
+      row[row.length - 1] += c;
+    }
+  }
+  if (row.length > 1 || row[0] !== '') {
+    lines.push(row);
+  }
+  return lines;
+}
+
+// Substring matcher to map CSV headers to API keys robustly
+function getFieldKey(header) {
+  const norm = header.toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (norm.includes('year') && norm.length < 6) return 'year';
+  if (norm.includes('timestamp')) return 'timestamp';
+  if (norm.includes('childwhoisenrolled')) return 'year_group';
+  if (norm.includes('reasonswhyaismis')) return 'reasons_raw';
+  if (norm.includes('receivedenoughinformation')) return 'preparedness_rating';
+  if (norm.includes('whatwasmostuseful')) return 'preparedness_feedback';
+  if (norm.includes('attendthenewparentorientation')) return 'orientation_attended';
+  if (norm.includes('communityverywelcoming')) return 'community_welcoming_rating';
+  if (norm.includes('childrenfeelsettled')) return 'settled_rating';
+  if (norm.includes('likelyisitthatyouwouldrecommend')) return 'recommend_nps_score';
+  if (norm.includes('whatistheonethingwecoulddo')) return 'recommendation_feedback';
+  if (norm.includes('promotern')) return 'is_promoter';
+  if (norm.includes('passiven')) return 'is_passive';
+  if (norm.includes('detractorn')) return 'is_detractor';
+  if (norm.includes('sentimentwhatistheone')) return 'sentiment';
+  if (norm.includes('categorywhatistheone')) return 'category';
+  return null;
+}
+
+// Convert parsed CSV rows into typed JS objects
+function processLiveCSV(parsedLines) {
+  const headers = parsedLines[0].map(h => h.trim());
+  const records = [];
+  
+  for (let i = 1; i < parsedLines.length; i++) {
+    const row = parsedLines[i];
+    if (row.length < headers.length) continue;
+    
+    const rec = {};
+    headers.forEach((header, colIdx) => {
+      const key = getFieldKey(header);
+      if (key) {
+        let val = row[colIdx] ? row[colIdx].trim() : '';
+        
+        // Convert to numbers or boolean logic
+        if (key === 'year' || key === 'recommend_nps_score' || key === 'is_promoter' || key === 'is_passive' || key === 'is_detractor') {
+          const num = Number(val);
+          rec[key] = (val === '' || isNaN(num)) ? null : num;
+        } else {
+          rec[key] = val === '' ? null : val;
+        }
+      }
+    });
+    
+    if (Object.keys(rec).length > 0) {
+      records.push(rec);
+    }
+  }
+  return records;
 }
 
 // Setup Dashboard View
