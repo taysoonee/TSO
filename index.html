@@ -3,657 +3,322 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AISM Onboarding Feedback</title>
-  <link rel="stylesheet" href="style.css?v=1.0.1">
+  <title>AISM Parent Feedback & Analytics Portal</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --bg-primary: #09090b;      /* Zinc 950 */
+      --bg-secondary: #18181b;    /* Zinc 900 */
+      --bg-tertiary: #27272a;     /* Zinc 800 */
+      --border-color: #27272a;
+      --text-primary: #fafafa;
+      --text-secondary: #a1a1aa;
+      --text-muted: #71717a;
+      --accent-indigo: #6366f1;
+      --accent-purple: #a855f7;
+      --accent-gradient: linear-gradient(135deg, var(--accent-indigo), var(--accent-purple));
+      --font-display: 'Outfit', sans-serif;
+      --font-sans: 'DM Sans', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Ambient background glows */
+    body::before {
+      content: "";
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, rgba(0,0,0,0) 70%);
+      top: -100px;
+      left: -100px;
+      z-index: 0;
+    }
+
+    body::after {
+      content: "";
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(168, 85, 247, 0.08) 0%, rgba(0,0,0,0) 70%);
+      bottom: -100px;
+      right: -100px;
+      z-index: 0;
+    }
+
+    .portal-container {
+      max-width: 1000px;
+      width: 100%;
+      text-align: center;
+      z-index: 10;
+    }
+
+    header {
+      margin-bottom: 50px;
+    }
+
+    .school-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background-color: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      border-radius: 30px;
+      padding: 6px 16px;
+      font-family: var(--font-display);
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
+
+    .school-badge i {
+      width: 12px;
+      height: 12px;
+      color: var(--accent-indigo);
+    }
+
+    h1 {
+      font-family: var(--font-display);
+      font-size: 3rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+      background: linear-gradient(180deg, #fff 0%, #a1a1aa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* Selection Portal Cards Grid */
+    .portal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 60px;
+    }
+
+    .portal-card {
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 40px 30px;
+      text-decoration: none;
+      color: var(--text-primary);
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 380px;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .portal-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: transparent;
+      transition: background-color 0.25s ease;
+    }
+
+    .portal-card:hover {
+      transform: translateY(-4px);
+      border-color: #3f3f46;
+      box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5);
+    }
+
+    .portal-card:hover::before {
+      background: var(--accent-gradient);
+    }
+
+    .card-top {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .card-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      background-color: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: all 0.25s ease;
+    }
+
+    .portal-card:hover .card-icon {
+      background-color: rgba(99, 102, 241, 0.08);
+      border-color: rgba(99, 102, 241, 0.3);
+    }
+
+    .card-icon i {
+      width: 24px;
+      height: 24px;
+      color: var(--text-secondary);
+      transition: color 0.25s ease;
+    }
+
+    .portal-card:hover .card-icon i {
+      color: #818cf8;
+    }
+
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .card-desc {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .card-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-display);
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      padding: 10px 20px;
+      background-color: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      width: max-content;
+      transition: all 0.25s ease;
+    }
+
+    .portal-card:hover .card-action {
+      background: var(--accent-gradient);
+      border-color: transparent;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+    }
+
+    .card-action i {
+      width: 14px;
+      height: 14px;
+      transition: transform 0.25s ease;
+    }
+
+    .portal-card:hover .card-action i {
+      transform: translateX(4px);
+    }
+
+    footer {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .portal-grid {
+        grid-template-columns: 1fr;
+      }
+      .portal-card {
+        height: auto;
+        min-height: 320px;
+        gap: 30px;
+      }
+      h1 {
+        font-size: 2.2rem;
+      }
+    }
+  </style>
 </head>
 <body>
-
-  <!-- Sticky Header -->
-  <header class="survey-header">
-    <div class="logo-container">
-      <!-- Fallback text and school logo from assets -->
-      <img src="assets/logo2.jpeg" alt="AISM Logo" onerror="this.src='assets/logo1.png'; this.onerror=function(){this.style.display='none';};">
-    </div>
-    <div class="anonymity-badge">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-        <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
-      </svg>
-      Anonymous Response
-    </div>
-  </header>
-
-  <div class="survey-container">
-    
-    <!-- Progress Indicator -->
-    <div class="progress-wrapper">
-      <div class="progress-bar-container">
-        <div class="progress-bar" id="progressBar"></div>
+  <div class="portal-container">
+    <header>
+      <div class="school-badge">
+        <i data-lucide="graduation-cap"></i>
+        <span>Australian International School Malaysia</span>
       </div>
-      <div class="progress-labels">
-        <span id="progressStep">Step 1 of 5</span>
-        <span id="progressPercentage">20% Completed</span>
-      </div>
+      <h1>Feedback & Insights Portal</h1>
+      <p class="subtitle">Welcome to the central feedback hub. Access the live onboarding survey or launch the administrative insights dashboard.</p>
+    </header>
+
+    <div class="portal-grid">
+      <!-- Card 1: Parent Feedback Form -->
+      <a href="form.html" class="portal-card">
+        <div class="card-top">
+          <div class="card-icon">
+            <i data-lucide="clipboard-signature"></i>
+          </div>
+          <h2 class="card-title">Parent Survey Form</h2>
+          <p class="card-desc">Are you a new AISM parent? Access the anonymous onboarding survey to share your experiences regarding registration, orientation, communication, and settling in.</p>
+        </div>
+        <div class="card-action">
+          <span>Start Survey</span>
+          <i data-lucide="arrow-right"></i>
+        </div>
+      </a>
+
+      <!-- Card 2: Insights & Chatbot Dashboard -->
+      <a href="dashboard/index.html" class="portal-card">
+        <div class="card-top">
+          <div class="card-icon">
+            <i data-lucide="line-chart"></i>
+          </div>
+          <h2 class="card-title">Insights Dashboard</h2>
+          <p class="card-desc">For administrative and academic teams. View integrated Looker Studio charts, track multi-year participation trends, and chat directly with qualitative parent responses via Gemini.</p>
+        </div>
+        <div class="card-action">
+          <span>Launch Dashboard</span>
+          <i data-lucide="arrow-right"></i>
+        </div>
+      </a>
     </div>
 
-    <!-- Main Card -->
-    <main class="card">
-      <form id="surveyForm" onsubmit="event.preventDefault();">
-        
-        <!-- STEP 1: Welcome & Basics -->
-        <div class="step-content active" data-step="1">
-          <h1>AISM Onboarding Feedback</h1>
-          <p class="welcome-text">
-            Thank you for taking the time to complete this survey. Your responses will help us ensure new families to the AISM Community are supported in the transition to their new school.
-          </p>
-          
-          <div class="form-group">
-            <label class="form-label">This feedback is for my child who is enrolled in:<span class="required-star">*</span></label>
-            <span class="form-label-desc">If you have more than one child at AISM, you are encouraged to complete another survey for each differing year group experience.</span>
-            <div class="year-grid">
-              <script>
-                const years = ["Nursery", "Preparation", "Foundation", "Year 1", "Year 2", "Year 3", "Year 4", "Year 5", "Year 6", "Year 7", "Year 8", "Year 9", "Year 10", "Year 11", "Year 12"];
-                document.write(years.map(y => `
-                  <label class="selector-item">
-                    <input type="radio" name="yearGroup" value="${y}" required>
-                    <span class="selector-box">${y}</span>
-                  </label>
-                `).join(''));
-              </script>
-            </div>
-          </div>
-        </div>
-
-        <!-- STEP 2: Preferences & Preparation -->
-        <div class="step-content" data-step="2">
-          <h2>Why AISM?</h2>
-          
-          <div class="form-group">
-            <label class="form-label">Could you tell us the reasons why AISM is the preferred school for your child/ren? <span class="required-star">*</span></label>
-            <span class="form-label-desc">(Please choose your top 3 reasons)</span>
-            <div class="reasons-list">
-              <script>
-                const reasons = [
-                  "Curriculum – Australian curriculum with balanced approach of partly examination-party practical based is our preferred choice",
-                  "Location – near to where we live/work",
-                  "Academic excellence – proven track record of quality teaching & learning",
-                  "Facilities – well-kept and well-equipped",
-                  "High quality of teachers",
-                  "Wide range of Extra-curricular activities and/or subject choices",
-                  "Brand recognition – AISM / Taylor’s Schools is a well-recognized education provider with a strong legacy",
-                  "Strong sense of community, culture and values",
-                  "Recommendation by friends/ family"
-                ];
-                document.write(reasons.map((r, i) => `
-                  <label class="reason-card" id="reason_label_${i}">
-                    <div class="checkbox-custom"></div>
-                    <input type="checkbox" name="preferredReasons" value="${r}" onchange="handleReasonChange(this, ${i})">
-                    <span class="reason-text">${r}</span>
-                  </label>
-                `).join(''));
-              </script>
-              <label class="reason-card" id="reason_label_other">
-                <div class="checkbox-custom"></div>
-                <input type="checkbox" name="preferredReasons" value="Other" onchange="handleReasonChange(this, 'other')">
-                <span class="reason-text">Other: <input type="text" id="otherReasonText" placeholder="Please specify" style="border:none; border-bottom:1px solid #cbd5e1; outline:none; padding:2px 5px; margin-left:10px; width:70%; font-size:inherit;" disabled></span>
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <!-- STEP 3: Induction & Information -->
-        <div class="step-content" data-step="3">
-          <h2>Information & Orientation</h2>
-
-          <div class="form-group">
-            <label class="form-label">Prior to starting at AISM, we received enough information to prepare our child/ren for their first day at school.<span class="required-star">*</span></label>
-            <table class="grid-table">
-              <thead>
-                <tr>
-                  <th></th>
-                  <th>Strongly Agree</th>
-                  <th>Agree</th>
-                  <th>Disagree</th>
-                  <th>Strongly Disagree</th>
-                  <th>Don't Know</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Prepared for first day</td>
-                  <script>
-                    const scales = ["Strongly agree", "Agree", "Disagree", "Strongly disagree", "Don't know"];
-                    document.write(scales.map(s => `
-                      <td>
-                        <label class="grid-radio-label">
-                          <input type="radio" name="preparationInfo" value="${s}" required>
-                          <span class="radio-circle"></span>
-                        </label>
-                      </td>
-                    `).join(''));
-                  </script>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Please provide information on what was most useful or additional information that would have been helpful to know, prior to starting school at AISM?<span class="required-star">*</span></label>
-            <textarea name="usefulInfoFeedback" required placeholder="Type your thoughts here..."></textarea>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Did you attend the New Parent Orientation (the formal welcome and presentation day for new families)?<span class="required-star">*</span></label>
-            <div style="display: flex; gap: 20px; margin-top: 10px;">
-              <label class="selector-item" style="flex:1;">
-                <input type="radio" name="attendOrientation" value="Yes" required onchange="toggleOrientationFields(this.value)">
-                <span class="selector-box">Yes, I attended</span>
-              </label>
-              <label class="selector-item" style="flex:1;">
-                <input type="radio" name="attendOrientation" value="No" required onchange="toggleOrientationFields(this.value)">
-                <span class="selector-box">No, I did not</span>
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <!-- STEP 4: Orientation Evaluation & First Week -->
-        <div class="step-content" data-step="4">
-          <h2>Orientation & Transition Experience</h2>
-
-          <!-- Conditional section if Orientation was attended -->
-          <div id="orientationAttendedSection" class="form-group" style="display:none;">
-            <label class="form-label">After attending the New Parent Orientation:<span class="required-star">*</span></label>
-            <table class="grid-table">
-              <thead>
-                <tr>
-                  <th>Statement</th>
-                  <th>Strongly Agree</th>
-                  <th>Agree</th>
-                  <th>Disagree</th>
-                  <th>Strongly Disagree</th>
-                  <th>Don't Know</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>I am better prepared to join the AISM community.</td>
-                  <script>
-                    document.write(scales.map(s => `
-                      <td>
-                        <label class="grid-radio-label">
-                          <input type="radio" name="orientationBetterPrepared" value="${s}">
-                          <span class="radio-circle"></span>
-                        </label>
-                      </td>
-                    `).join(''));
-                  </script>
-                </tr>
-                <tr>
-                  <td>I am more confident navigating the new campus.</td>
-                  <script>
-                    document.write(scales.map(s => `
-                      <td>
-                        <label class="grid-radio-label">
-                          <input type="radio" name="orientationCampusComfort" value="${s}">
-                          <span class="radio-circle"></span>
-                        </label>
-                      </td>
-                    `).join(''));
-                  </script>
-                </tr>
-                <tr>
-                  <td>I am aware of the key personnel & support services.</td>
-                  <script>
-                    document.write(scales.map(s => `
-                      <td>
-                        <label class="grid-radio-label">
-                          <input type="radio" name="orientationAwarePersonnel" value="${s}">
-                          <span class="radio-circle"></span>
-                        </label>
-                      </td>
-                    `).join(''));
-                  </script>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Conditional section if Orientation was NOT attended -->
-          <div id="orientationNotAttendedSection" class="form-group" style="display:none;">
-            <label class="form-label">As you did not attend the Orientation, how did you receive your school induction information?<span class="required-star">*</span></label>
-            <span class="form-label-desc">Select all that apply</span>
-            <div class="reasons-list">
-              <script>
-                const inductionSources = [
-                  "Parent Portal",
-                  "School Handbook (in Parent Portal)",
-                  "School Calendar (in Parent Portal)",
-                  "AISM Website",
-                  "AISM Weekly News",
-                  "AISM Newsletter",
-                  "School Notice Boards"
-                ];
-                document.write(inductionSources.map((src, i) => `
-                  <label class="reason-card" id="induction_label_${i}">
-                    <div class="checkbox-custom"></div>
-                    <input type="checkbox" name="inductionSources" value="${src}" onchange="handleInductionChange(this, ${i})">
-                    <span class="reason-text">${src}</span>
-                  </label>
-                `).join(''));
-              </script>
-              <label class="reason-card" id="induction_label_other">
-                <div class="checkbox-custom"></div>
-                <input type="checkbox" name="inductionSources" value="Other" onchange="handleInductionChange(this, 'other')">
-                <span class="reason-text">Other: <input type="text" id="otherInductionText" placeholder="Please specify" style="border:none; border-bottom:1px solid #cbd5e1; outline:none; padding:2px 5px; margin-left:10px; width:70%; font-size:inherit;" disabled></span>
-              </label>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">First Month & Communication Feedback:<span class="required-star">*</span></label>
-            <table class="grid-table">
-              <thead>
-                <tr>
-                  <th>Statement</th>
-                  <th>Strongly Agree</th>
-                  <th>Agree</th>
-                  <th>Disagree</th>
-                  <th>Strongly Disagree</th>
-                  <th>Don't Know</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>I and my child/ren are fully prepared for the first week of school.</td>
-                  <script>
-                    document.write(scales.map(s => `
-                      <td>
-                        <label class="grid-radio-label">
-                          <input type="radio" name="firstWeekPrepared" value="${s}" required>
-                          <span class="radio-circle"></span>
-                        </label>
-                      </td>
-                    `).join(''));
-                  </script>
-                </tr>
-                <tr>
-                  <td>We found the AISM Community very welcoming in our first month.</td>
-                  <script>
-                    document.write(scales.map(s => `
-                      <td>
-                        <label class="grid-radio-label">
-                          <input type="radio" name="communityWelcoming" value="${s}" required>
-                          <span class="radio-circle"></span>
-                        </label>
-                      </td>
-                    `).join(''));
-                  </script>
-                </tr>
-                <tr>
-                  <td>The school communicates key information in a timely & effective manner.</td>
-                  <script>
-                    document.write(scales.map(s => `
-                      <td>
-                        <label class="grid-radio-label">
-                          <input type="radio" name="communicationTimely" value="${s}" required>
-                          <span class="radio-circle"></span>
-                        </label>
-                      </td>
-                    `).join(''));
-                  </script>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- STEP 5: NPS Recommendation & Open Feedback -->
-        <div class="step-content" data-step="5">
-          <h2>Overall Recommendation</h2>
-          
-          <div class="form-group">
-            <label class="form-label">How likely is it that you would recommend Australian International School Malaysia (AISM) to a friend or colleague?<span class="required-star">*</span></label>
-            <div class="nps-container">
-              <script>
-                for(let idx=0; idx<=10; idx++) {
-                  document.write(`
-                    <label class="nps-box">
-                      <input type="radio" name="npsScore" value="${idx}" required>
-                      <span class="nps-label">${idx}</span>
-                    </label>
-                  `);
-                }
-              </script>
-            </div>
-            <div class="nps-legend">
-              <span>0 - Not at all likely</span>
-              <span>10 - Extremely likely</span>
-            </div>
-          </div>
-
-          <div class="form-group" style="margin-top: 40px;">
-            <label class="form-label">What is the one thing we could do to make you recommend us?<span class="required-star">*</span></label>
-            <textarea name="recommendationAction" required placeholder="Type your thoughts here..."></textarea>
-          </div>
-        </div>
-
-        <!-- Navigation Buttons -->
-        <div class="button-row">
-          <button type="button" class="btn btn-secondary" id="btnPrev" onclick="navigateStep(-1)" style="display:none;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-              <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
-            </svg>
-            Back
-          </button>
-          
-          <button type="button" class="btn btn-primary" id="btnNext" onclick="navigateStep(1)" style="margin-left: auto;">
-            Next
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-              <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
-            </svg>
-          </button>
-        </div>
-
-      </form>
-    </main>
-
-    <!-- SUCCESS SCREEN -->
-    <main class="card" id="successCard" style="display:none;">
-      <div class="thank-you-card">
-        <div class="success-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
-            <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
-          </svg>
-        </div>
-        <h1>Thank you!</h1>
-        <p class="welcome-text">Your feedback has been submitted successfully. We appreciate your response to help improve the AISM onboarding experience.</p>
-        <div class="btn-group">
-          <button class="btn btn-primary" onclick="window.location.reload();">Submit Another Response</button>
-        </div>
-      </div>
-    </main>
-
+    <footer>
+      <p>&copy; 2026 Australian International School Malaysia. Internal Administrative Portal.</p>
+    </footer>
   </div>
 
   <script>
-    let currentStep = 1;
-    const totalSteps = 5;
-
-    // Reason code changes
-    function handleReasonChange(checkbox, index) {
-      const card = checkbox.closest('.reason-card');
-      if (checkbox.checked) {
-        card.classList.add('selected');
-        if (index === 'other') {
-          document.getElementById('otherReasonText').disabled = false;
-          document.getElementById('otherReasonText').focus();
-        }
-      } else {
-        card.classList.remove('selected');
-        if (index === 'other') {
-          document.getElementById('otherReasonText').disabled = true;
-          document.getElementById('otherReasonText').value = '';
-        }
-      }
-
-      // Check validation for step 2: enforce max 3 selections
-      const checkedBoxes = document.querySelectorAll('input[name="preferredReasons"]:checked');
-      if (checkedBoxes.length > 3) {
-        checkbox.checked = false;
-        card.classList.remove('selected');
-        if (index === 'other') {
-          document.getElementById('otherReasonText').disabled = true;
-        }
-        alert('Please choose at most 3 reasons.');
-      }
-    }
-
-    // Induction code changes
-    function handleInductionChange(checkbox, index) {
-      const card = checkbox.closest('.reason-card');
-      if (checkbox.checked) {
-        card.classList.add('selected');
-        if (index === 'other') {
-          document.getElementById('otherInductionText').disabled = false;
-          document.getElementById('otherInductionText').focus();
-        }
-      } else {
-        card.classList.remove('selected');
-        if (index === 'other') {
-          document.getElementById('otherInductionText').disabled = true;
-          document.getElementById('otherInductionText').value = '';
-        }
-      }
-    }
-
-    // Conditional render for Orientation Questions
-    function toggleOrientationFields(val) {
-      const attendedDiv = document.getElementById('orientationAttendedSection');
-      const notAttendedDiv = document.getElementById('orientationNotAttendedSection');
-      
-      const attendedInputs = attendedDiv.querySelectorAll('input');
-      const notAttendedInputs = notAttendedDiv.querySelectorAll('input');
-
-      if (val === 'Yes') {
-        attendedDiv.style.display = 'block';
-        notAttendedDiv.style.display = 'none';
-        
-        attendedInputs.forEach(i => i.required = true);
-        notAttendedInputs.forEach(i => i.required = false);
-      } else {
-        attendedDiv.style.display = 'none';
-        notAttendedDiv.style.display = 'block';
-        
-        attendedInputs.forEach(i => i.required = false);
-        notAttendedInputs.forEach(i => i.required = false);
-      }
-    }
-
-    // Stepper Navigation
-    function navigateStep(direction) {
-      // Validate inputs before moving forward
-      if (direction === 1 && !validateCurrentStep()) {
-        return;
-      }
-
-      currentStep += direction;
-
-      if (currentStep > totalSteps) {
-        submitForm();
-        return;
-      }
-
-      updateStepVisibility();
-      updateProgressBar();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function updateStepVisibility() {
-      document.querySelectorAll('.step-content').forEach(step => {
-        step.classList.remove('active');
-      });
-      document.querySelector(`.step-content[data-step="${currentStep}"]`).classList.add('active');
-
-      // Update buttons
-      document.getElementById('btnPrev').style.display = currentStep === 1 ? 'none' : 'inline-flex';
-      
-      const nextBtn = document.getElementById('btnNext');
-      if (currentStep === totalSteps) {
-        nextBtn.innerHTML = `
-          Submit
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-            <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11zM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493z"/>
-          </svg>
-        `;
-      } else {
-        nextBtn.innerHTML = `
-          Next
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-            <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
-          </svg>
-        `;
-      }
-    }
-
-    function updateProgressBar() {
-      const percentage = Math.round(((currentStep - 1) / (totalSteps - 1)) * 100);
-      document.getElementById('progressBar').style.width = `${percentage}%`;
-      document.getElementById('progressStep').innerText = `Step ${currentStep} of ${totalSteps}`;
-      document.getElementById('progressPercentage').innerText = `${percentage}% Completed`;
-    }
-
-    function validateCurrentStep() {
-      const activeDiv = document.querySelector(`.step-content[data-step="${currentStep}"]`);
-      
-      // Select standard required inputs
-      const requiredInputs = activeDiv.querySelectorAll('input[required], textarea[required]');
-      let isValid = true;
-
-      // Group inputs by name to validate radios/checkboxes correctly
-      const nameGroups = {};
-      requiredInputs.forEach(input => {
-        if (input.name) {
-          nameGroups[input.name] = nameGroups[input.name] || [];
-          nameGroups[input.name].push(input);
-        }
-      });
-
-      for (const name in nameGroups) {
-        const group = nameGroups[name];
-        const isRadioOrCheckbox = group[0].type === 'radio' || group[0].type === 'checkbox';
-        
-        if (isRadioOrCheckbox) {
-          const checked = group.some(input => input.checked);
-          if (!checked) {
-            isValid = false;
-            highlightGroupError(group[0]);
-          } else {
-            removeGroupHighlight(group[0]);
-          }
-        } else {
-          // Text fields
-          if (!group[0].value.trim()) {
-            isValid = false;
-            highlightError(group[0]);
-          } else {
-            removeHighlight(group[0]);
-          }
-        }
-      }
-
-      // Special validation for step 2 (Preferred Reasons: check that at least 1 is selected)
-      if (currentStep === 2) {
-        const checkedBoxes = document.querySelectorAll('input[name="preferredReasons"]:checked');
-        if (checkedBoxes.length === 0) {
-          alert('Please select at least one preferred reason.');
-          isValid = false;
-        }
-      }
-
-      return isValid;
-    }
-
-    function highlightError(element) {
-      element.style.borderColor = 'var(--error-color)';
-    }
-
-    function removeHighlight(element) {
-      element.style.borderColor = 'var(--border-color)';
-    }
-
-    function highlightGroupError(element) {
-      const container = element.closest('.form-group');
-      if (container) {
-        container.style.borderLeft = '4px solid var(--error-color)';
-        container.style.paddingLeft = '10px';
-      }
-    }
-
-    function removeGroupHighlight(element) {
-      const container = element.closest('.form-group');
-      if (container) {
-        container.style.borderLeft = 'none';
-        container.style.paddingLeft = '0';
-      }
-    }
-
-    // INSERT YOUR GOOGLE APPS SCRIPT WEB APP URL HERE:
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbytgZ4NyCOONVgpdUfNkhJ5l0KG4MHsWSOP3c8dSCWzlM8WZSethjkBvKq-ePHwE2kCjg/exec"; 
-
-    // Submit Action
-    function submitForm() {
-      // Show loading state
-      const nextBtn = document.getElementById('btnNext');
-      nextBtn.classList.add('btn-disabled');
-      nextBtn.innerText = 'Submitting...';
-
-      // Gather form data
-      const formData = new FormData(document.getElementById('surveyForm'));
-      const data = {};
-
-      formData.forEach((value, key) => {
-        if (data[key]) {
-          if (!Array.isArray(data[key])) {
-            data[key] = [data[key]];
-          }
-          data[key].push(value);
-        } else {
-          data[key] = value;
-        }
-      });
-
-      // Special handling for text inputs in check options
-      if (data.preferredReasons && (Array.isArray(data.preferredReasons) ? data.preferredReasons.includes('Other') : data.preferredReasons === 'Other')) {
-        data.preferredReasonsOtherText = document.getElementById('otherReasonText').value;
-      }
-      if (data.inductionSources && (Array.isArray(data.inductionSources) ? data.inductionSources.includes('Other') : data.inductionSources === 'Other')) {
-        data.inductionSourcesOtherText = document.getElementById('otherInductionText').value;
-      }
-
-      console.log('Sending data:', data);
-
-      if (!GOOGLE_SCRIPT_URL) {
-        // Fallback simulation if no script URL is set yet
-        console.warn("No GOOGLE_SCRIPT_URL defined. Simulating successful submission.");
-        setTimeout(() => {
-          showSuccessScreen();
-        }, 1500);
-        return;
-      }
-
-      fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors', // standard mode for cross-domain form post-backs
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      })
-      .then(() => {
-        showSuccessScreen();
-      })
-      .catch(error => {
-        console.error('Submission error:', error);
-        alert('An error occurred during submission. Please try again.');
-        nextBtn.classList.remove('btn-disabled');
-        nextBtn.innerHTML = `
-          Submit
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-            <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11zM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493z"/>
-          </svg>
-        `;
-      });
-    }
-
-    function showSuccessScreen() {
-      document.querySelector('.card').style.display = 'none';
-      document.querySelector('.progress-wrapper').style.display = 'none';
-      document.getElementById('successCard').style.display = 'block';
-    }
-
-    // On Load: Set first progress step
-    updateProgressBar();
+    lucide.createIcons();
   </script>
-
 </body>
 </html>

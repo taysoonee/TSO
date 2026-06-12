@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AISM New Parent Insights Hub</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Outfit:wght@100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+  <!-- Lucide Icons (CDN) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="header-logo">
+        <div class="logo-accent"></div>
+        <h1>AISM New Parent Insights Hub</h1>
+      </div>
+      <div class="header-actions">
+        <button id="open-settings-btn" class="icon-btn" title="Settings">
+          <i data-lucide="settings"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace Split Panel -->
+    <main class="app-main">
+      <!-- Left: Dashboard Embed -->
+      <section class="panel dashboard-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <i data-lucide="bar-chart-3"></i>
+            <h2>Interactive Dashboard</h2>
+          </div>
+          <span class="status-indicator live">Live Visualization</span>
+        </div>
+        <div class="panel-content" id="dashboard-wrapper">
+          <!-- Fallback/Configure Placeholder -->
+          <div class="dashboard-placeholder" id="dashboard-setup-prompt">
+            <div class="placeholder-icon">
+              <i data-lucide="layout-dashboard"></i>
+            </div>
+            <h3>Embed Looker Studio Dashboard</h3>
+            <p>Connect your custom Looker Studio reports to view interactive charts side-by-side with the chatbot.</p>
+            <button id="setup-embed-btn" class="primary-btn">
+              <i data-lucide="link"></i> Configure Embed URL
+            </button>
+          </div>
+          <!-- Loaded iframe will be injected here -->
+          <iframe id="dashboard-iframe" class="dashboard-iframe hidden" src="" frameborder="0" allowfullscreen></iframe>
+        </div>
+      </section>
+
+      <!-- Right: AI Chatbot -->
+      <section class="panel chat-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <i data-lucide="message-square"></i>
+            <h2>Data Assistant</h2>
+          </div>
+          <div class="chat-status">
+            <span class="status-dot green" id="db-status-dot"></span>
+            <span id="db-status-text">Loading survey data...</span>
+          </div>
+        </div>
+
+        <div class="chat-messages" id="chat-messages">
+          <!-- Welcomes and messages dynamically generated -->
+        </div>
+
+        <div class="chat-quick-queries" id="quick-queries">
+          <!-- Suggested queries inserted here -->
+        </div>
+
+        <div class="chat-input-area">
+          <div class="input-wrapper">
+            <textarea id="chat-input" placeholder="Ask about NPS trends, reasons for choosing AISM, or parent feedback..." rows="1"></textarea>
+            <button id="send-btn" class="send-btn" disabled>
+              <i data-lucide="arrow-up"></i>
+            </button>
+          </div>
+          <div class="chat-footer">
+            <span>Powered by Gemini 2.5 Flash • Static Context Engine</span>
+            <button id="clear-chat-btn" class="text-link-btn">
+              <i data-lucide="trash-2"></i> Clear Chat
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Settings Dialog (Modal overlay) -->
+  <div class="modal-overlay hidden" id="settings-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Configuration Settings</h3>
+        <button id="close-settings-btn" class="icon-btn">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="setting-api-key">Gemini API Key</label>
+          <div class="api-key-input-container">
+            <input type="password" id="setting-api-key" placeholder="Enter AIzaSy... API key">
+            <button id="toggle-key-visibility" class="icon-btn" type="button">
+              <i data-lucide="eye"></i>
+            </button>
+          </div>
+          <p class="form-help">Your key is stored securely in your local browser storage and never sent to any server except the Google Gemini API directly.</p>
+        </div>
+        <div class="form-group">
+          <label for="setting-embed-url">Looker Studio Embed URL</label>
+          <input type="url" id="setting-embed-url" placeholder="https://lookerstudio.google.com/embed/reporting/...">
+          <p class="form-help">Paste the Looker Studio embed URL (File -> Embed report -> Enable embedding -> Copy the URL inside the src attribute of the iframe).</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="cancel-settings-btn" class="secondary-btn">Cancel</button>
+        <button id="save-settings-btn" class="primary-btn">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Application Script -->
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
