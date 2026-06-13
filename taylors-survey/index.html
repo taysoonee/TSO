@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Taylor's Schools Feedback & Analytics Portal</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --bg-primary: #f9fafb;        /* Light Gray */
+      --bg-secondary: #ffffff;      /* White */
+      --bg-tertiary: #f3f4f6;       /* Gray 100 */
+      --border-color: #e5e7eb;      /* Gray 200 */
+      
+      --text-primary: #111827;      /* Charcoal 900 */
+      --text-secondary: #4b5563;    /* Gray 600 */
+      --text-muted: #9ca3af;        /* Gray 400 */
+      
+      --primary-color: #b20000;     /* Taylor's Crimson Red */
+      --secondary-color: #111827;   /* Taylor's Charcoal */
+      
+      --accent-gradient: linear-gradient(135deg, var(--primary-color), #ff4d4d);
+      --accent-glow: rgba(178, 0, 0, 0.05);
+      
+      --font-display: 'Roboto', sans-serif;
+      --font-sans: 'Open Sans', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(178, 0, 0, 0.04) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(17, 24, 39, 0.04) 0px, transparent 50%);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 20px;
+      overflow-x: hidden;
+    }
+
+    .portal-container {
+      max-width: 1000px;
+      width: 100%;
+      text-align: center;
+      z-index: 10;
+    }
+
+    header {
+      margin-bottom: 45px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .logo-wrapper {
+      margin-bottom: 20px;
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      color: var(--text-primary);
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-symbol {
+      width: 28px;
+      height: 28px;
+      background: var(--accent-gradient);
+      transform: rotate(45deg);
+      border-radius: 4px;
+    }
+
+    .logo-text span {
+      color: var(--primary-color);
+    }
+
+    .school-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background-color: rgba(178, 0, 0, 0.05);
+      border: 1px solid rgba(178, 0, 0, 0.15);
+      border-radius: 4px;
+      padding: 6px 14px;
+      font-family: var(--font-display);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--primary-color);
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-family: var(--font-display);
+      font-size: 2.6rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      line-height: 1.2;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* Portal Grid */
+    .portal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 50px;
+    }
+
+    .portal-card {
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 40px 30px;
+      text-decoration: none;
+      color: var(--text-primary);
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 350px;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+    }
+
+    .portal-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: transparent;
+      transition: background-color 0.25s ease;
+    }
+
+    .portal-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(178, 0, 0, 0.3);
+      box-shadow: 0 20px 40px -15px rgba(178, 0, 0, 0.08);
+    }
+
+    .portal-card:hover::before {
+      background: var(--accent-gradient);
+    }
+
+    .card-top {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .card-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 8px;
+      background-color: rgba(178, 0, 0, 0.03);
+      border: 1px solid rgba(178, 0, 0, 0.08);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .card-icon i {
+      width: 24px;
+      height: 24px;
+      color: var(--primary-color);
+    }
+
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--text-primary);
+    }
+
+    .card-desc {
+      font-size: 0.92rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .card-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-display);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      padding: 10px 18px;
+      background-color: rgba(178, 0, 0, 0.04);
+      border: 1px solid rgba(178, 0, 0, 0.08);
+      border-radius: 6px;
+      width: max-content;
+      transition: all 0.25s ease;
+    }
+
+    .portal-card:hover .card-action {
+      background: var(--accent-gradient);
+      color: #ffffff;
+      border-color: transparent;
+      box-shadow: 0 4px 12px rgba(178, 0, 0, 0.2);
+    }
+
+    .card-action i {
+      width: 14px;
+      height: 14px;
+      transition: transform 0.25s ease;
+    }
+
+    .portal-card:hover .card-action i {
+      transform: translateX(4px);
+    }
+
+    footer {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 768px) {
+      .portal-grid {
+        grid-template-columns: 1fr;
+      }
+      .portal-card {
+        height: auto;
+        min-height: 300px;
+        gap: 30px;
+      }
+      h1 {
+        font-size: 2.1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="portal-container">
+    <header>
+      <div class="logo-wrapper">
+        <div class="logo-symbol"></div>
+        <div class="logo-text">TAYLOR'S <span>SCHOOLS</span></div>
+      </div>
+      <div class="school-badge">
+        <span>Relevant • Responsible • Resilient</span>
+      </div>
+      <h1>Survey & Insights Portal</h1>
+      <p class="subtitle">Welcome to the central feedback portal for Taylor's Schools. Access the parent survey form or open the administrative dashboard.</p>
+    </header>
+
+    <div class="portal-grid">
+      <!-- Card 1: Parent Survey Form -->
+      <a href="form.html" class="portal-card">
+        <div class="card-top">
+          <div class="card-icon">
+            <i data-lucide="clipboard-signature"></i>
+          </div>
+          <h2 class="card-title">Parent Survey Form</h2>
+          <p class="card-desc">Access the parent survey forms to record onboarding feedback regarding school administration, facilities, and the transition experience.</p>
+        </div>
+        <div class="card-action">
+          <span>Start Survey</span>
+          <i data-lucide="arrow-right"></i>
+        </div>
+      </a>
+
+      <!-- Card 2: Insights & Chatbot Dashboard -->
+      <a href="dashboard/index.html" class="portal-card">
+        <div class="card-top">
+          <div class="card-icon">
+            <i data-lucide="line-chart"></i>
+          </div>
+          <h2 class="card-title">Insights Dashboard</h2>
+          <p class="card-desc">For administrative teams. View integrated Looker Studio charts and utilize the AI Chatbot to converse with live, private spreadsheet data securely.</p>
+        </div>
+        <div class="card-action">
+          <span>Launch Dashboard</span>
+          <i data-lucide="arrow-right"></i>
+        </div>
+      </a>
+    </div>
+
+    <footer>
+      <p>&copy; 2026 Taylor's Education Group. Internal Administrative Portal.</p>
+      <p style="margin-top: 4px; font-size: 0.72rem; opacity: 0.6;">Portal Version: v1.3.0 (Taylor's Secure)</p>
+    </footer>
+  </div>
+
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>
