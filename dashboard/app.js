@@ -1,8 +1,21 @@
 // State management
 let surveyData = null;
-let currentApiKey = localStorage.getItem('g_api_key') || (typeof CONFIG !== 'undefined' ? CONFIG.DEFAULT_API_KEY : '');
-let currentEmbedUrl = localStorage.getItem('g_embed_url') || (typeof CONFIG !== 'undefined' ? CONFIG.DEFAULT_EMBED_URL : '');
-let currentProxyUrl = localStorage.getItem('g_proxy_url') || (typeof CONFIG !== 'undefined' ? CONFIG.DEFAULT_PROXY_URL : '');
+
+let currentApiKey = localStorage.getItem('g_api_key');
+if (currentApiKey === null || currentApiKey === '') {
+  currentApiKey = (typeof CONFIG !== 'undefined' ? CONFIG.DEFAULT_API_KEY : '');
+}
+
+let currentEmbedUrl = localStorage.getItem('g_embed_url');
+if (currentEmbedUrl === null || currentEmbedUrl === '') {
+  currentEmbedUrl = (typeof CONFIG !== 'undefined' ? CONFIG.DEFAULT_EMBED_URL : '');
+}
+
+let currentProxyUrl = localStorage.getItem('g_proxy_url');
+if (currentProxyUrl === null || currentProxyUrl === '') {
+  currentProxyUrl = (typeof CONFIG !== 'undefined' ? CONFIG.DEFAULT_PROXY_URL : '');
+}
+
 let chatHistory = [];
 
 // DOM elements
