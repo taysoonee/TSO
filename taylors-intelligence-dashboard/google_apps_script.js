@@ -1,4 +1,4 @@
-// Google Apps Script Version: v1.0.1 (Taylor's Intelligence Dashboard Proxy & Data Loader)
+// Google Apps Script Version: v1.0.2 (Taylor's Intelligence Dashboard Proxy & Data Loader)
 /**
  * Google Apps Script for Taylor's Intelligence Dashboard to handle:
  * 1. Secure dynamic data loading (opens private spreadsheet and returns JSON database)
@@ -133,7 +133,7 @@ function handleChatbotRequest(data) {
       })).setMimeType(ContentService.MimeType.JSON);
     }
     
-    var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey;
+    var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=" + apiKey;
     
     var contents = history.map(function(h) {
       return {

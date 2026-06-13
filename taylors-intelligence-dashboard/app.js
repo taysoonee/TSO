@@ -1,4 +1,4 @@
-console.log("App initialized - Taylor's Intelligence Dashboard v1.1.0");
+console.log("App initialized - Taylor's Intelligence Dashboard v1.1.1");
 
 // State management
 let dashboardData = null;
@@ -375,7 +375,7 @@ INSTRUCTIONS:
     }
   };
 
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${currentApiKey}`, {
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${currentApiKey}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
