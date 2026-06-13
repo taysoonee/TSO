@@ -455,9 +455,6 @@ INSTRUCTIONS:
 
     const response = await fetch(currentProxyUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'text/plain;charset=utf-8' // GAS expects text/plain or no preflight for direct POST sometimes, but JSON works too
-      },
       body: JSON.stringify(proxyBody)
     });
 
