@@ -1,4 +1,4 @@
-// Google Apps Script Version: v1.2.0 (Taylor's Intelligence Dashboard Self-Healing Indexer & Router)
+// Google Apps Script Version: v1.2.1 (Taylor's Intelligence Dashboard Self-Healing Indexer & Router)
 /**
  * Google Apps Script for Taylor's Intelligence Dashboard:
  * 1. Rapid metadata load (returns only sheet names, avoiding massive downloads on startup)
@@ -102,8 +102,8 @@ function getSheetDescriptions(ss) {
   try {
     var values = indexSheet.getDataRange().getValues();
     for (var i = 1; i < values.length; i++) {
-      var sName = values[i][0].toString().trim();
-      var sDesc = values[i][1].toString().trim();
+      var sName = values[i][0] ? values[i][0].toString().trim() : "";
+      var sDesc = values[i][1] ? values[i][1].toString().trim() : "";
       if (sName !== "") {
         descriptions[sName] = sDesc;
       }
@@ -188,6 +188,10 @@ function handleChatbotRequest(data) {
     var routerText = JSON.parse(routerResponse.getContentText());
     var selectedSheets = [];
     
+    if (routerText.error) {
+      throw new Error("Gemini Router API Error: " + routerText.error.message);
+    }
+    
     try {
       var rawJson = routerText.candidates[0].content.parts[0].text;
       selectedSheets = JSON.parse(rawJson);
@@ -258,6 +262,15 @@ function handleChatbotRequest(data) {
     var finalResponse = UrlFetchApp.fetch(routerUrl, finalOptions);
     var resultText = finalResponse.getContentText();
     var result = JSON.parse(resultText);
+    
+    if (result.error) {
+      throw new Error("Gemini Final API Error: " + result.error.message);
+    }
+    
+    if (!result.candidates || result.candidates.length === 0) {
+      throw new Error("Gemini Final API returned no response candidates. API Response: " + resultText);
+    }
+    
     var botText = result.candidates[0].content.parts[0].text;
     
     // Step 4: Log conversation
