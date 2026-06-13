@@ -1,4 +1,4 @@
-// Google Apps Script Version: v1.2.7 (Taylor's Intelligence Dashboard Self-Healing Indexer & Router)
+// Google Apps Script Version: v1.2.8 (Taylor's Intelligence Dashboard Self-Healing Indexer & Router)
 /**
  * Google Apps Script for Taylor's Intelligence Dashboard:
  * 1. Rapid metadata load (returns only sheet names, avoiding massive downloads on startup)
@@ -80,10 +80,10 @@ function getSheetDescriptions(ss) {
   var descriptions = {};
   
   var defaults = {
-    "Fees": "Contains tuition/school fees, AND academic exam results (IB average score, IB student counts for 45/44/>=40/pass, A-Level A*/A/B/C/pass counts, IGCSE A*/A/B/C/pass counts, and HSC Bands 1-6) for Malaysian schools.",
-    "SG Fees": "Contains tuition/school fees, AND academic exam results (IB average score, IB student counts for 45/44/>=40/pass, A-Level A*/A/B/C/pass counts, IGCSE A*/A/B/C/pass counts, and HSC Bands 1-6) for Singaporean schools.",
-    "Enrolment": "Contains student enrolment numbers, school capacity, class capacities, intake stats, and historical headcount figures.",
-    "Academic Results": "Contains historical examination results, including IGCSE pass rates, A-Level grades, IBDP scores, and student academic performance records."
+    "Fees": "Contains competitor international school tuition/school fees, ENROLMENT numbers, school capacity, and academic results (IB, A-Level, IGCSE) for competitor Malaysian international schools (including MKIS, ISKL, BSKL, etc.).",
+    "SG Fees": "Contains competitor international school tuition/school fees, ENROLMENT numbers, school capacity, and academic results for Singaporean international schools.",
+    "Enrolment": "Contains student enrolment numbers, school capacity, class capacities, intake stats, and historical headcount figures for Taylor's schools.",
+    "Academic Results": "Contains historical examination results, including IGCSE pass rates, A-Level grades, IBDP scores, and student academic performance records for Taylor's schools."
   };
   
   if (!indexSheet) {
@@ -100,23 +100,35 @@ function getSheetDescriptions(ss) {
   }
   
   try {
-    var values = indexSheet.getDataRange().getValues();
+    var range = indexSheet.getDataRange();
+    var values = range.getValues();
+    var sheetRowMap = {};
+    
     for (var i = 1; i < values.length; i++) {
       var sName = values[i][0] ? values[i][0].toString().trim() : "";
       var sDesc = values[i][1] ? values[i][1].toString().trim() : "";
       if (sName !== "") {
         descriptions[sName] = sDesc;
+        sheetRowMap[sName] = i + 1; // 1-indexed row number
+      }
+    }
+    
+    // Auto-update missing or outdated index descriptions
+    for (var key in defaults) {
+      var currentDesc = descriptions[key] || "";
+      var lowerDesc = currentDesc.toLowerCase();
+      if (currentDesc === "" || lowerDesc.indexOf("enrolment") === -1 || lowerDesc.indexOf("competitor") === -1) {
+        descriptions[key] = defaults[key];
+        var rowNum = sheetRowMap[key];
+        if (rowNum) {
+          indexSheet.getRange(rowNum, 2).setValue(defaults[key]);
+        } else {
+          indexSheet.appendRow([key, defaults[key]]);
+        }
       }
     }
   } catch (readErr) {
-    Logger.log("Failed reading Index sheet: " + readErr.toString());
-  }
-  
-  // Merge missing defaults
-  for (var key in defaults) {
-    if (!descriptions[key]) {
-      descriptions[key] = defaults[key];
-    }
+    Logger.log("Failed reading/updating Index sheet: " + readErr.toString());
   }
   
   return descriptions;
