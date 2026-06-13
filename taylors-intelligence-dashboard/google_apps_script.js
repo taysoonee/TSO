@@ -159,9 +159,26 @@ function handleChatbotRequest(data) {
     });
     
     var sheetsInfo = allSheetNames.map(function(name) {
+      var sheet = ss.getSheetByName(name);
+      var headersSnippet = "";
+      if (sheet) {
+        var lastCol = sheet.getLastColumn();
+        if (lastCol > 0) {
+          var headerValues = sheet.getRange(1, 1, 1, Math.min(lastCol, 100)).getValues();
+          if (headerValues && headerValues[0]) {
+            var columns = headerValues[0].filter(function(h) { 
+              return h !== null && h !== "" && h !== undefined; 
+            }).map(function(h) { return h.toString().trim(); });
+            if (columns.length > 0) {
+              headersSnippet = " (Columns: " + columns.slice(0, 30).join(", ") + ")";
+            }
+          }
+        }
+      }
+      var baseDesc = sheetDescriptions[name] || "General data sheet.";
       return {
         name: name,
-        description: sheetDescriptions[name] || "General data sheet."
+        description: baseDesc + headersSnippet
       };
     });
     
