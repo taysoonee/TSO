@@ -1,4 +1,4 @@
-// Google Apps Script Version: v1.2.2 (Taylor's Intelligence Dashboard Self-Healing Indexer & Router)
+// Google Apps Script Version: v1.2.3 (Taylor's Intelligence Dashboard Self-Healing Indexer & Router)
 /**
  * Google Apps Script for Taylor's Intelligence Dashboard:
  * 1. Rapid metadata load (returns only sheet names, avoiding massive downloads on startup)
@@ -210,7 +210,7 @@ function handleChatbotRequest(data) {
           var headers = values[0].map(function(h) { return h.toString().trim(); });
           var rows = [];
           
-          var maxRows = 500; // Cap at 500 rows per sheet to prevent exceeding token context limits
+          var maxRows = 2000; // Cap at 2000 rows per sheet to ensure complete coverage of large datasets
           var rowCount = Math.min(values.length, maxRows + 1);
           
           for (var i = 1; i < rowCount; i++) {
