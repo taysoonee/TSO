@@ -1,4 +1,4 @@
-console.log("App initialized - Taylor's Intelligence Dashboard v1.2.3");
+console.log("App initialized - Taylor's Intelligence Dashboard v1.3.0");
 
 // State management
 let dashboardData = null;
@@ -30,19 +30,7 @@ const chatInput = document.getElementById('chat-input');
 const sendBtn = document.getElementById('send-btn');
 const quickQueries = document.getElementById('quick-queries');
 const clearChatBtn = document.getElementById('clear-chat-btn');
-const openSettingsBtn = document.getElementById('open-settings-btn');
-const closeSettingsBtn = document.getElementById('close-settings-btn');
-const cancelSettingsBtn = document.getElementById('cancel-settings-btn');
-const saveSettingsBtn = document.getElementById('save-settings-btn');
-const settingsModal = document.getElementById('settings-modal');
-const settingApiKey = document.getElementById('setting-api-key');
-const settingProxyUrl = document.getElementById('setting-proxy-url');
-const settingSpreadsheetId = document.getElementById('setting-spreadsheet-id');
-const settingEmbedUrl = document.getElementById('setting-embed-url');
-const toggleKeyVisibility = document.getElementById('toggle-key-visibility');
 const dashboardIframe = document.getElementById('dashboard-iframe');
-const dashboardSetupPrompt = document.getElementById('dashboard-setup-prompt');
-const setupEmbedBtn = document.getElementById('setup-embed-btn');
 const dbStatusDot = document.getElementById('db-status-dot');
 const dbStatusText = document.getElementById('db-status-text');
 
@@ -58,11 +46,7 @@ const SUGGESTED_QUERIES = [
 window.addEventListener('DOMContentLoaded', async () => {
   lucide.createIcons();
   
-  // Set UI inputs
-  settingApiKey.value = currentApiKey;
-  settingProxyUrl.value = currentProxyUrl;
-  settingSpreadsheetId.value = currentSpreadsheetId;
-  settingEmbedUrl.value = currentEmbedUrl;
+
   
   initDashboard();
   
@@ -83,19 +67,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   sendBtn.addEventListener('click', handleSendMessage);
   clearChatBtn.addEventListener('click', clearChat);
-  openSettingsBtn.addEventListener('click', () => toggleModal(true));
-  closeSettingsBtn.addEventListener('click', () => toggleModal(false));
-  cancelSettingsBtn.addEventListener('click', () => toggleModal(false));
-  saveSettingsBtn.addEventListener('click', saveSettings);
-  setupEmbedBtn.addEventListener('click', () => toggleModal(true));
-  
-  toggleKeyVisibility.addEventListener('click', () => {
-    const isPass = settingApiKey.type === 'password';
-    settingApiKey.type = isPass ? 'text' : 'password';
-    const iconName = isPass ? 'eye-off' : 'eye';
-    toggleKeyVisibility.innerHTML = `<i data-lucide="${iconName}"></i>`;
-    lucide.createIcons();
-  });
+
 });
 
 // Load survey database dynamically from Proxy (or local JSON fallback)
@@ -150,47 +122,10 @@ function initDashboard() {
   if (currentEmbedUrl && currentEmbedUrl.trim() !== '') {
     dashboardIframe.src = currentEmbedUrl;
     dashboardIframe.classList.remove('hidden');
-    dashboardSetupPrompt.classList.add('hidden');
-  } else {
-    dashboardIframe.src = '';
-    dashboardIframe.classList.add('hidden');
-    dashboardSetupPrompt.classList.remove('hidden');
   }
 }
 
-// Toggle Settings Modal
-function toggleModal(show) {
-  if (show) {
-    settingsModal.classList.remove('hidden');
-    settingApiKey.value = currentApiKey;
-    settingProxyUrl.value = currentProxyUrl;
-    settingSpreadsheetId.value = currentSpreadsheetId;
-    settingEmbedUrl.value = currentEmbedUrl;
-  } else {
-    settingsModal.classList.add('hidden');
-  }
-}
 
-// Save Settings from Modal
-async function saveSettings() {
-  currentApiKey = settingApiKey.value.trim();
-  currentProxyUrl = settingProxyUrl.value.trim();
-  currentSpreadsheetId = settingSpreadsheetId.value.trim();
-  currentEmbedUrl = settingEmbedUrl.value.trim();
-  
-  localStorage.setItem('g_tso_api_key', currentApiKey);
-  localStorage.setItem('g_tso_proxy_url', currentProxyUrl);
-  localStorage.setItem('g_tso_spreadsheet_id', currentSpreadsheetId);
-  localStorage.setItem('g_tso_embed_url', currentEmbedUrl);
-  
-  initDashboard();
-  toggleModal(false);
-  
-  // Reload database
-  await loadDashboardData();
-  
-  appendMessage('bot', `⚙️ **Settings updated successfully!** Dashboard reloaded and database sync re-initiated.`);
-}
 
 // Render Welcome Message
 function renderWelcomeMessage() {
