@@ -1,4 +1,4 @@
-// Google Apps Script Version: v1.4.0 (TSO Second Brain Secure Google Drive Router)
+// Google Apps Script Version: v1.5.0 (TSO Second Brain Secure Google Drive Router)
 /**
  * Google Apps Script for TSO Second Brain:
  * 1. Securely searches and reads live markdown/text files from your private Google Drive (.TSO folder).
@@ -78,12 +78,13 @@ function handleChatbotRequest(data) {
     var context = getSecondBrainContext(folder);
     
     // Call Gemini API
-    var responseText = callGemini(apiKey, userPrompt, history, context);
+    var geminiResult = callGemini(apiKey, userPrompt, history, context);
+    var responseText = geminiResult.text;
     
     // Log conversation to Google Sheet
     var logWarning = "";
     try {
-      logChatToSpreadsheet(userPrompt, responseText);
+      logChatToSpreadsheet(userPrompt, responseText, geminiResult.promptTokens, geminiResult.candidatesTokens);
     } catch (logErr) {
       logWarning = "\n\n⚠️ **Chat Logging Warning**: " + logErr.toString() + " (Please verify your Google Sheet authorization and access permissions).";
     }
@@ -295,10 +296,18 @@ function callGemini(apiKey, prompt, history, context) {
     throw new Error(json.error ? json.error.message : "HTTP " + response.getResponseCode());
   }
   
-  return json.candidates[0].content.parts[0].text;
+  var text = json.candidates[0].content.parts[0].text;
+  var promptTokens = json.usageMetadata ? json.usageMetadata.promptTokenCount : 0;
+  var candidatesTokens = json.usageMetadata ? json.usageMetadata.candidatesTokenCount : 0;
+  
+  return {
+    text: text,
+    promptTokens: promptTokens,
+    candidatesTokens: candidatesTokens
+  };
 }
 
-function logChatToSpreadsheet(userPrompt, responseText) {
+function logChatToSpreadsheet(userPrompt, responseText, promptTokens, candidatesTokens) {
   var lock = LockService.getScriptLock();
   try {
     lock.waitLock(15000); // 15-second timeout to prevent concurrent write corruption
@@ -312,7 +321,13 @@ function logChatToSpreadsheet(userPrompt, responseText) {
     var sheet = ss.getSheets()[0]; // Append to the first sheet tab
     
     var timestamp = new Date().toISOString();
-    sheet.appendRow([timestamp, userPrompt, responseText]);
+    
+    // Cost calculation (Gemini 3.5 Flash: $0.075/1M input tokens, $0.30/1M output tokens)
+    var inputCost = (promptTokens || 0) * 0.000000075;
+    var outputCost = (candidatesTokens || 0) * 0.0000003;
+    var totalCost = inputCost + outputCost;
+    
+    sheet.appendRow([timestamp, userPrompt, responseText, promptTokens || 0, candidatesTokens || 0, totalCost]);
   } catch (e) {
     throw new Error("Failed to write to Google Sheet: " + e.toString());
   } finally {
