@@ -1,4 +1,4 @@
-// Google Apps Script Version: v1.2.3 (Taylor's Intelligence Dashboard Self-Healing Indexer & Router)
+// Google Apps Script Version: v1.2.4 (Taylor's Intelligence Dashboard Self-Healing Indexer & Router)
 /**
  * Google Apps Script for Taylor's Intelligence Dashboard:
  * 1. Rapid metadata load (returns only sheet names, avoiding massive downloads on startup)
@@ -219,7 +219,7 @@ function handleChatbotRequest(data) {
             var hasValue = false;
             
             headers.forEach(function(header, colIdx) {
-              if (header !== "" && colIdx < 30) { // Cap at 30 columns per sheet
+              if (header !== "" && colIdx < 100) { // Cap at 100 columns per sheet to prevent truncating wide academic tables
                 var val = row[colIdx];
                 if (val instanceof Date) {
                   val = val.toISOString().split('T')[0];
