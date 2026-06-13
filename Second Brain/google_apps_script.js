@@ -1,4 +1,4 @@
-// Google Apps Script Version: v1.3.0 (TSO Second Brain Secure Google Drive Router)
+// Google Apps Script Version: v1.3.1 (TSO Second Brain Secure Google Drive Router)
 /**
  * Google Apps Script for TSO Second Brain:
  * 1. Securely searches and reads live markdown/text files from your private Google Drive (.TSO folder).
@@ -97,18 +97,47 @@ function handleChatbotRequest(data) {
 }
 
 function getFolderByName(name) {
+  var firstResolved = null;
+  
+  // Helper to validate if the folder contains Second Brain content
+  function isValidFolder(folder) {
+    if (!folder) return false;
+    try {
+      // Check for compiled_context.txt
+      if (folder.getFilesByName("compiled_context.txt").hasNext()) {
+        return true;
+      }
+      // Check for subfolder named "wiki"
+      if (folder.getFoldersByName("wiki").hasNext()) {
+        return true;
+      }
+    } catch (e) {
+      // Fail-safe to ignore folders with restricted permissions
+      console.warn("Permission check failed for folder: " + folder.getName(), e.toString());
+    }
+    return false;
+  }
+  
   // Method 1: Try root level path search (e.g. My Drive/Tay)
   var rootFolder = getFolderByPath(name);
-  if (rootFolder) return rootFolder;
+  if (rootFolder) {
+    if (!firstResolved) firstResolved = rootFolder;
+    if (isValidFolder(rootFolder)) return rootFolder;
+  }
   
   // Method 2: Try exact path traversal inside Second Brain
   var pathFolder = getFolderByPath("1. Tay/Obsidian/Second Brain/" + name);
-  if (pathFolder) return pathFolder;
+  if (pathFolder) {
+    if (!firstResolved) firstResolved = pathFolder;
+    if (isValidFolder(pathFolder)) return pathFolder;
+  }
   
   // Method 3: Search for the folder name directly anywhere in Drive
   var folders = DriveApp.getFoldersByName(name);
-  if (folders.hasNext()) {
-    return folders.next();
+  while (folders.hasNext()) {
+    var folder = folders.next();
+    if (!firstResolved) firstResolved = folder;
+    if (isValidFolder(folder)) return folder;
   }
   
   // Method 4: Search for parent folder "Second Brain" first, then look for name inside it
@@ -116,12 +145,15 @@ function getFolderByName(name) {
   while (parents.hasNext()) {
     var parent = parents.next();
     var subs = parent.getFoldersByName(name);
-    if (subs.hasNext()) {
-      return subs.next();
+    while (subs.hasNext()) {
+      var sub = subs.next();
+      if (!firstResolved) firstResolved = sub;
+      if (isValidFolder(sub)) return sub;
     }
   }
   
-  return null;
+  // Fallback to the first resolved folder (maintains backwards compatibility)
+  return firstResolved;
 }
 
 function getFolderByPath(path) {
@@ -146,7 +178,7 @@ function getFolderByPath(path) {
 
 function getSecondBrainContext(parentFolder) {
   var cache = CacheService.getUserCache();
-  var cachedContext = cache.get("tso_compiled_context");
+  var cachedContext = cache.get("tso_compiled_context_" + parentFolder.getId());
   if (cachedContext) {
     return cachedContext;
   }
@@ -174,7 +206,7 @@ function getSecondBrainContext(parentFolder) {
   }
   
   if (compiledContext && compiledContext.length < 100000) {
-    cache.put("tso_compiled_context", compiledContext, 600); // 10 minutes cache
+    cache.put("tso_compiled_context_" + parentFolder.getId(), compiledContext, 600); // 10 minutes cache
   }
   
   return compiledContext;
