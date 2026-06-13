@@ -1,7 +1,7 @@
-console.log("App initialized - Taylor's Survey Dashboard v1.3.0");
+console.log("App initialized - Taylor's Intelligence Dashboard v1.0.0");
 
 // State management
-let surveyData = null;
+let dashboardData = null;
 let currentHistory = [];
 
 let currentApiKey = localStorage.getItem('g_tso_api_key');
@@ -48,10 +48,10 @@ const dbStatusText = document.getElementById('db-status-text');
 
 // Quick Action Queries
 const SUGGESTED_QUERIES = [
-  "Summarize the overall survey feedback.",
-  "What are the main categories of parent comments?",
-  "What are the top recommendations for Taylor's Schools onboarding?",
-  "List any recurring issues raised by parents."
+  "Summarize the overall data in the sheets.",
+  "What are the main insights or trends?",
+  "List any recommendations based on the data.",
+  "Are there any recurring issues or highlights?"
 ];
 
 // Initialize Application
@@ -67,7 +67,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   initDashboard();
   
   // Load database
-  await loadSurveyData();
+  await loadDashboardData();
   
   renderWelcomeMessage();
   renderSuggestedQueries();
@@ -99,7 +99,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 });
 
 // Load survey database dynamically from Proxy (or local JSON fallback)
-async function loadSurveyData() {
+async function loadDashboardData() {
   dbStatusDot.className = 'status-dot yellow';
   dbStatusText.textContent = 'Connecting database...';
   
@@ -112,7 +112,7 @@ async function loadSurveyData() {
   }
   
   try {
-    chatInput.placeholder = "Loading survey database dynamically...";
+    chatInput.placeholder = "Loading dashboard database dynamically...";
     chatInput.disabled = true;
     
     // Request raw sheets data from Apps Script bridge (keeps sheet restricted!)
@@ -133,23 +133,20 @@ async function loadSurveyData() {
       throw new Error(result.message);
     }
     
-    surveyData = result.data;
-    
-    // Calculate total sheets loaded
-    const sheetsLoaded = Object.keys(surveyData).join(', ');
+    dashboardData = result.data;
     
     dbStatusDot.className = 'status-dot green';
-    dbStatusText.textContent = `Live Connected (Sheets: ${Object.keys(surveyData).length})`;
+    dbStatusText.textContent = `Live Connected (Sheets: ${Object.keys(dashboardData).length})`;
     sendBtn.disabled = false;
     chatInput.disabled = false;
-    chatInput.placeholder = "Ask about survey responses, recommendations, or trends...";
+    chatInput.placeholder = "Ask about trends, recommendations, or insights...";
   } catch (error) {
-    console.error('Error loading survey data:', error);
+    console.error('Error loading dashboard data:', error);
     dbStatusDot.className = 'status-dot red';
     dbStatusText.textContent = 'Connection failed';
     chatInput.placeholder = "Failed to load database. Check settings or authorize Apps Script.";
     
-    appendMessage('bot', `⚠️ **Database Connection Error:** Failed to load live survey data from Google Sheets.
+    appendMessage('bot', `⚠️ **Database Connection Error:** Failed to load live data from Google Sheets.
     
 **Reasons this happens:**
 1. Your Google Apps Script Web App URL is incorrect or hasn't been deployed.
@@ -202,21 +199,21 @@ async function saveSettings() {
   toggleModal(false);
   
   // Reload database
-  await loadSurveyData();
+  await loadDashboardData();
   
   appendMessage('bot', `⚙️ **Settings updated successfully!** Dashboard reloaded and database sync re-initiated.`);
 }
 
 // Render Welcome Message
 function renderWelcomeMessage() {
-  const welcomeText = `👋 Welcome to the **Taylor's Schools Insights Assistant**. 
+  const welcomeText = `👋 Welcome to the **Taylor's Schools Intelligence Assistant**. 
 
-I have access to your live **onboarding survey database** through your secure Apps Script data bridge.
+I have access to your live **intelligence database** through your secure Apps Script proxy.
 
 You can ask me to:
-- *Summarize the qualitative feedback from new parents.*
-- *List key areas of concern regarding uniforms, registration, or campus facilities.*
-- *Provide recommendations based on parent comments.*
+- *Analyze trends and insights in the dataset.*
+- *Search and summarize specific entries.*
+- *Answer operational questions based on your sheets.*
 
 **What insights would you like to explore today?**`;
   
@@ -314,17 +311,17 @@ async function handleSendMessage() {
 
 // Send Request to Gemini API
 async function callGeminiAPI(promptText) {
-  const systemPrompt = `You are "Taylor's Schools Insights Bot", a data analyst assistant.
-You are helping administrative teams analyze new parent onboarding survey responses.
+  const systemPrompt = `You are "Taylor's Schools Intelligence Bot", a data analyst assistant.
+You are helping administrative teams analyze data, trends, and key metrics.
 All answers must be strictly accurate and grounded in the provided JSON dataset.
 
 DATA CONTEXT (All sheets parsed from Google Sheets):
-${JSON.stringify(surveyData)}
+${JSON.stringify(dashboardData)}
 
 INSTRUCTIONS:
 1. Ground answers strictly in the provided JSON dataset.
 2. Formulate answers using clear categories, bullet points, bold tags, and markdown tables where appropriate.
-3. Be professional, concise, and focused on operational insights (what is working, what needs improvement).
+3. Be professional, concise, and focused on operational insights.
 4. If the database lacks information, explain that you don't find it in the current sheets.`;
 
   // Proxy Call (Option A)

@@ -1,7 +1,7 @@
-// Taylor's Schools Portal configuration
+// Taylor's Intelligence Dashboard Configuration Defaults (v1.0.0)
 const CONFIG = {
   // We recommend leaving this empty here and saving your actual Gemini API key 
-  // securely in Google Sheets script properties.
+  // securely in Google Sheets Script Properties.
   DEFAULT_API_KEY: "",
   
   // Default Looker Studio embed URL
@@ -10,6 +10,6 @@ const CONFIG = {
   // Default Google Spreadsheet ID (TSO private sheet)
   DEFAULT_SPREADSHEET_ID: "1Dh4OkkSQY8rcpdjITqQqFYYwzuQtTEPpqz9LF8GAHdk",
   
-  // Default Apps Script Web App URL (leave blank for user to paste in settings, or pre-populate if needed)
+  // Default Apps Script Web App URL (leave blank for user to paste in settings modal)
   DEFAULT_PROXY_URL: ""
 };

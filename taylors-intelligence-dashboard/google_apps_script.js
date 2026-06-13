@@ -1,11 +1,19 @@
-// Google Apps Script Version: v1.3.0 (Taylor's Secure Proxy & Data Loader)
+// Google Apps Script Version: v1.0.0 (Taylor's Intelligence Dashboard Proxy & Data Loader)
 /**
- * Google Apps Script for Taylor's Schools Portal to handle:
- * 1. Survey submissions (saves to target sheet)
- * 2. Secure dynamic data loading (opens private company sheet and returns JSON database)
- * 3. Secure Chatbot proxy (attaches Gemini API key securely)
+ * Google Apps Script for Taylor's Intelligence Dashboard to handle:
+ * 1. Secure dynamic data loading (opens private spreadsheet and returns JSON database)
+ * 2. Secure Chatbot proxy (attaches Gemini API key securely from Script Properties)
  *
- * (See AISM instructions for deployment: Deploy as Web App -> Anyone -> Me)
+ * Deploy instructions:
+ * 1. Open https://script.google.com/home/projects/1tnaxWlcIYieTbbJNfT_IBSvwssoDsdD-J3AqnK2ZkDrq0VHDhAjmVzc5/edit
+ * 2. Paste this code, saving the script.
+ * 3. Go to project settings (gear icon) and add two Script Properties:
+ *    - GEMINI_API_KEY: (Your Google AI Studio API key)
+ *    - SPREADSHEET_ID: 1Dh4OkkSQY8rcpdjITqQqFYYwzuQtTEPpqz9LF8GAHdk
+ * 4. Click Deploy -> New deployment -> Select type: Web App
+ *    - Execute as: Me
+ *    - Who has access: Anyone
+ * 5. Deploy, authorize permissions, and copy the Web App URL.
  */
 
 function doPost(e) {
@@ -24,21 +32,9 @@ function doPost(e) {
       return handleLoadData(data);
     }
     
-    // Route 3: Survey form submission (falls back to active or explicit sheet)
-    var spreadsheetId = data.spreadsheet_id || PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");
-    var ss = spreadsheetId ? SpreadsheetApp.openById(spreadsheetId) : SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = ss.getActiveSheet();
-    
-    // Default headers mapping
-    var headers = ["Timestamp", "Feedback"];
-    var timestamp = new Date();
-    var rowValues = [timestamp, data.feedback || ""];
-    
-    sheet.appendRow(rowValues);
-    
     return ContentService.createTextOutput(JSON.stringify({
-      status: "success",
-      message: "Submission successful."
+      status: "error",
+      message: "Invalid action. Supported actions: 'load_data', 'chat'."
     })).setMimeType(ContentService.MimeType.JSON);
     
   } catch (error) {
@@ -50,7 +46,7 @@ function doPost(e) {
 }
 
 /**
- * Reads all worksheets from the private spreadsheet and returns a structured JSON
+ * Reads worksheets from the private spreadsheet and returns a structured JSON
  */
 function handleLoadData(data) {
   try {
@@ -58,7 +54,7 @@ function handleLoadData(data) {
     if (!spreadsheetId) {
       return ContentService.createTextOutput(JSON.stringify({
         status: "error",
-        message: "Spreadsheet ID is missing."
+        message: "Spreadsheet ID is missing in request and Script Properties."
       })).setMimeType(ContentService.MimeType.JSON);
     }
     
@@ -68,13 +64,13 @@ function handleLoadData(data) {
     
     sheets.forEach(function(sheet) {
       var name = sheet.getName();
-      // Skip log sheets to avoid bloating context
+      // Skip chat log sheet to avoid inflating database context size
       if (name === "Chat Logs") return;
       
       var range = sheet.getDataRange();
       var values = range.getValues();
       if (values.length > 0) {
-        // Clean headers
+        // Clean header keys
         var headers = values[0].map(function(h) {
           return h.toString().trim();
         });
@@ -88,7 +84,7 @@ function handleLoadData(data) {
           headers.forEach(function(header, colIdx) {
             if (header !== "") {
               var val = row[colIdx];
-              // Format Date objects to ISO string
+              // Format Date objects to ISO date strings
               if (val instanceof Date) {
                 val = val.toISOString().split('T')[0];
               }
@@ -186,25 +182,27 @@ function handleChatbotRequest(data) {
     // Log the conversation to "Chat Logs" tab in the spreadsheet
     try {
       var spreadsheetId = data.spreadsheet_id || PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");
-      var ss = spreadsheetId ? SpreadsheetApp.openById(spreadsheetId) : SpreadsheetApp.getActiveSpreadsheet();
-      var logSheet = ss.getSheetByName("Chat Logs");
-      if (!logSheet) {
-        logSheet = ss.insertSheet("Chat Logs");
-        logSheet.appendRow(["Timestamp", "User Query", "Bot Response", "Est. Input Tokens", "Est. Output Tokens", "Est. Cost ($)"]);
+      var ss = spreadsheetId ? SpreadsheetApp.openById(spreadsheetId) : null;
+      if (ss) {
+        var logSheet = ss.getSheetByName("Chat Logs");
+        if (!logSheet) {
+          logSheet = ss.insertSheet("Chat Logs");
+          logSheet.appendRow(["Timestamp", "User Query", "Bot Response", "Est. Input Tokens", "Est. Output Tokens", "Est. Cost ($)"]);
+        }
+        
+        var estInputTokens = Math.ceil(JSON.stringify(payload).length / 4);
+        var estOutputTokens = Math.ceil(botText.length / 4);
+        var estCost = (estInputTokens * 0.000000075) + (estOutputTokens * 0.00000030);
+        
+        logSheet.appendRow([
+          new Date(), 
+          prompt, 
+          botText, 
+          estInputTokens, 
+          estOutputTokens, 
+          Number(estCost.toFixed(6))
+        ]);
       }
-      
-      var estInputTokens = Math.ceil(JSON.stringify(payload).length / 4);
-      var estOutputTokens = Math.ceil(botText.length / 4);
-      var estCost = (estInputTokens * 0.000000075) + (estOutputTokens * 0.00000030);
-      
-      logSheet.appendRow([
-        new Date(), 
-        prompt, 
-        botText, 
-        estInputTokens, 
-        estOutputTokens, 
-        Number(estCost.toFixed(6))
-      ]);
     } catch (logErr) {
       Logger.log("Failed to log conversation: " + logErr.toString());
     }
