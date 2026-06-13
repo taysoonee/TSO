@@ -1,4 +1,4 @@
-// Google Apps Script Version: v1.2.4 (Taylor's Intelligence Dashboard Self-Healing Indexer & Router)
+// Google Apps Script Version: v1.2.5 (Taylor's Intelligence Dashboard Self-Healing Indexer & Router)
 /**
  * Google Apps Script for Taylor's Intelligence Dashboard:
  * 1. Rapid metadata load (returns only sheet names, avoiding massive downloads on startup)
@@ -201,6 +201,12 @@ function handleChatbotRequest(data) {
     
     // Step 2: Load data ONLY from the selected sheets with strict row and property limits to prevent token caps
     var loadedData = {};
+    
+    // Academic detection keywords and regex (safe matching for words and literal 'a*')
+    var academicQueryRegex = /\b(igcse|a-level|ib|exam|results|hsc)\b|a\*/i;
+    var isAcademicQuery = academicQueryRegex.test(prompt || "");
+    var academicHeaderKeywords = ['igcse', 'a-level', 'a*', 'ib', 'hsc', 'pass', 'average', 'score'];
+
     selectedSheets.forEach(function(sheetName) {
       var sheet = ss.getSheetByName(sheetName);
       if (sheet) {
@@ -208,32 +214,64 @@ function handleChatbotRequest(data) {
         var values = range.getValues();
         if (values.length > 0) {
           var headers = values[0].map(function(h) { return h.toString().trim(); });
+          
+          // Map academic header indices
+          var academicColIndices = [];
+          headers.forEach(function(header, idx) {
+            var normalizedHeader = header.toLowerCase().replace(/[\s-_]/g, '');
+            var isAcademic = academicHeaderKeywords.some(function(keyword) {
+              var normalizedKeyword = keyword.replace(/[\s-_]/g, '');
+              return normalizedHeader.indexOf(normalizedKeyword) !== -1;
+            });
+            if (isAcademic && idx < 100) {
+              academicColIndices.push(idx);
+            }
+          });
+
           var rows = [];
-          
           var maxRows = 2000; // Cap at 2000 rows per sheet to ensure complete coverage of large datasets
-          var rowCount = Math.min(values.length, maxRows + 1);
           
-          for (var i = 1; i < rowCount; i++) {
+          // Iterate from bottom (latest) to top (earliest), skipping header row (index 0)
+          for (var i = values.length - 1; i >= 1; i--) {
+            if (rows.length >= maxRows) break;
+
             var row = values[i];
             var rowObj = {};
             var hasValue = false;
+            var hasAcademicValue = false;
             
             headers.forEach(function(header, colIdx) {
-              if (header !== "" && colIdx < 100) { // Cap at 100 columns per sheet to prevent truncating wide academic tables
+              if (header !== "" && colIdx < 100) { // Cap at 100 columns per sheet
                 var val = row[colIdx];
                 if (val instanceof Date) {
                   val = val.toISOString().split('T')[0];
                 }
-                // Skip writing empty/null properties to shrink JSON token size significantly
+                
+                // Strict check to preserve valid 0 or false values
                 if (val !== null && val !== "" && val !== undefined) {
                   rowObj[header] = val;
                   hasValue = true;
+                  
+                  // Check if this is a populated academic column
+                  if (academicColIndices.indexOf(colIdx) !== -1) {
+                    hasAcademicValue = true;
+                  }
                 }
               }
             });
-            if (hasValue) rows.push(rowObj);
+
+            // Smart Row Filtering: If academic query and academic columns exist,
+            // skip row if it contains no academic data (filters out Nursery/Primary rows)
+            if (hasValue) {
+              if (isAcademicQuery && academicColIndices.length > 0 && !hasAcademicValue) {
+                continue; 
+              }
+              rows.push(rowObj);
+            }
           }
-          loadedData[sheetName] = rows;
+          
+          // Invert back to preserve chronological top-to-bottom order for the LLM context
+          loadedData[sheetName] = rows.reverse();
         }
       }
     });
@@ -257,7 +295,7 @@ function handleChatbotRequest(data) {
     var finalPayload = {
       contents: contents,
       systemInstruction: { parts: [{ text: systemPrompt }] },
-      generationConfig: { temperature: 0.15, maxOutputTokens: 2048 }
+      generationConfig: { temperature: 0.15, maxOutputTokens: 8192 }
     };
     
     var finalOptions = {
