@@ -1,15 +1,23 @@
 /**
- * Google Apps Script to handle survey form submissions.
+ * Google Apps Script to handle survey form submissions and secure Chatbot requests.
  * Paste this code inside your Google Spreadsheet's Apps Script editor:
  * (Spreadsheet -> Extensions -> Apps Script)
  * 
- * Be sure to deploy this as a Web App:
- * 1. Click "Deploy" -> "New deployment"
+ * Be sure to configure Script Properties:
+ * 1. Open the script editor.
+ * 2. Click the gear icon on the left (Project Settings).
+ * 3. Under "Script Properties", click "Add script property".
+ * 4. Property Name: GEMINI_API_KEY
+ * 5. Value: (Paste your actual Gemini API Key here)
+ * 6. Save Script Properties.
+ * 
+ * Be sure to deploy/re-deploy this as a Web App:
+ * 1. Click "Deploy" -> "New deployment" (or "Manage deployments" -> edit to increment version).
  * 2. Select type: "Web app"
- * 3. Description: AISM Survey Backend
+ * 3. Description: AISM Survey Backend & Chatbot Proxy
  * 4. Execute as: "Me" (your email)
  * 5. Who has access: "Anyone"
- * 6. Click "Deploy" and copy the Web App URL.
+ * 6. Click "Deploy" and copy/update the Web App URL.
  */
 
 function doPost(e) {
@@ -18,12 +26,15 @@ function doPost(e) {
     var jsonString = e.postData.contents;
     var data = JSON.parse(jsonString);
     
-    // Get target sheet
-    // Open by active spreadsheet or specific spreadsheet ID
+    // Route to chatbot proxy if action is "chat"
+    if (data.action === "chat") {
+      return handleChatbotRequest(data);
+    }
+    
+    // Otherwise, default to existing survey form submission logic
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     
-    // Prepare the headers mapping (matching Google Form columns)
-    // Adjust order to match your Google Sheet exactly:
+    // Prepare the headers mapping
     var headers = [
       "Timestamp",
       "This feedback is for my child who is enrolled in",
@@ -88,6 +99,91 @@ function doPost(e) {
     return ContentService.createTextOutput(JSON.stringify({
       status: "error",
       message: error.toString()
+    }))
+    .setMimeType(ContentService.MimeType.JSON)
+    .setHeader("Access-Control-Allow-Origin", "*");
+  }
+}
+
+/**
+ * Chatbot request handler (proxies calls securely to Gemini API)
+ */
+function handleChatbotRequest(data) {
+  try {
+    var prompt = data.prompt;
+    var history = data.history || [];
+    var systemPrompt = data.systemPrompt || "";
+    
+    // Retrieve API key securely from Apps Script properties (not exposed to user browser)
+    var apiKey = PropertiesService.getScriptProperties().getProperty("GEMINI_API_KEY");
+    if (!apiKey) {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "error",
+        message: "API Key not configured in Google Script properties. Please set GEMINI_API_KEY in script settings."
+      }))
+      .setMimeType(ContentService.MimeType.JSON)
+      .setHeader("Access-Control-Allow-Origin", "*");
+    }
+    
+    var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey;
+    
+    var contents = history.map(function(h) {
+      return {
+        role: h.role,
+        parts: [{ text: h.content }]
+      };
+    });
+    
+    contents.push({
+      role: "user",
+      parts: [{ text: prompt }]
+    });
+    
+    var payload = {
+      contents: contents,
+      systemInstruction: {
+        parts: [{ text: systemPrompt }]
+      },
+      generationConfig: {
+        temperature: 0.15,
+        maxOutputTokens: 2048
+      }
+    };
+    
+    var options = {
+      method: "post",
+      contentType: "application/json",
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    };
+    
+    var response = UrlFetchApp.fetch(url, options);
+    var responseText = response.getContentText();
+    var responseCode = response.getResponseCode();
+    
+    if (responseCode !== 200) {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "error",
+        message: "Gemini API returned status " + responseCode + ": " + responseText
+      }))
+      .setMimeType(ContentService.MimeType.JSON)
+      .setHeader("Access-Control-Allow-Origin", "*");
+    }
+    
+    var result = JSON.parse(responseText);
+    var botText = result.candidates[0].content.parts[0].text;
+    
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "success",
+      response: botText
+    }))
+    .setMimeType(ContentService.MimeType.JSON)
+    .setHeader("Access-Control-Allow-Origin", "*");
+    
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "error",
+      message: err.toString()
     }))
     .setMimeType(ContentService.MimeType.JSON)
     .setHeader("Access-Control-Allow-Origin", "*");

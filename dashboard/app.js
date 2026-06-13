@@ -2,6 +2,7 @@
 let surveyData = null;
 let currentApiKey = localStorage.getItem('g_api_key') || (typeof CONFIG !== 'undefined' ? CONFIG.DEFAULT_API_KEY : '');
 let currentEmbedUrl = localStorage.getItem('g_embed_url') || (typeof CONFIG !== 'undefined' ? CONFIG.DEFAULT_EMBED_URL : '');
+let currentProxyUrl = localStorage.getItem('g_proxy_url') || (typeof CONFIG !== 'undefined' ? CONFIG.DEFAULT_PROXY_URL : '');
 let chatHistory = [];
 
 // DOM elements
@@ -16,6 +17,7 @@ const cancelSettingsBtn = document.getElementById('cancel-settings-btn');
 const saveSettingsBtn = document.getElementById('save-settings-btn');
 const settingsModal = document.getElementById('settings-modal');
 const settingApiKey = document.getElementById('setting-api-key');
+const settingProxyUrl = document.getElementById('setting-proxy-url');
 const settingEmbedUrl = document.getElementById('setting-embed-url');
 const toggleKeyVisibility = document.getElementById('toggle-key-visibility');
 const dashboardIframe = document.getElementById('dashboard-iframe');
@@ -39,6 +41,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   
   // Set initial settings inputs
   settingApiKey.value = currentApiKey;
+  settingProxyUrl.value = currentProxyUrl;
   settingEmbedUrl.value = currentEmbedUrl;
   
   // Setup Dashboard
@@ -126,7 +129,7 @@ async function loadSurveyData() {
     
     dbStatusDot.className = 'status-dot green';
     dbStatusText.textContent = `Database Loaded (${isLive ? 'Live' : 'Static'}: ${responseCount} responses)`;
-    sendBtn.disabled = !currentApiKey;
+    sendBtn.disabled = !(currentApiKey || currentProxyUrl);
     chatInput.placeholder = "Ask about NPS trends, reasons for choosing AISM, or parent feedback...";
   } catch (error) {
     console.error('Error loading survey data:', error);
@@ -245,6 +248,7 @@ function toggleModal(show) {
   if (show) {
     settingsModal.classList.remove('hidden');
     settingApiKey.value = currentApiKey;
+    settingProxyUrl.value = currentProxyUrl;
     settingEmbedUrl.value = currentEmbedUrl;
   } else {
     settingsModal.classList.add('hidden');
@@ -254,16 +258,18 @@ function toggleModal(show) {
 // Save Settings from Modal
 function saveSettings() {
   currentApiKey = settingApiKey.value.trim();
+  currentProxyUrl = settingProxyUrl.value.trim();
   currentEmbedUrl = settingEmbedUrl.value.trim();
   
   localStorage.setItem('g_api_key', currentApiKey);
+  localStorage.setItem('g_proxy_url', currentProxyUrl);
   localStorage.setItem('g_embed_url', currentEmbedUrl);
   
   initDashboard();
   toggleModal(false);
   
   if (surveyData) {
-    sendBtn.disabled = !currentApiKey;
+    sendBtn.disabled = !(currentApiKey || currentProxyUrl);
   }
   
   appendMessage('bot', `⚙️ **Settings updated successfully!** Dashboard reloaded and API authentication updated.`);
@@ -339,8 +345,8 @@ function autoResizeTextarea() {
 async function handleSendMessage() {
   const text = chatInput.value.trim();
   if (!text) return;
-  if (!currentApiKey) {
-    appendMessage('bot', '🔒 **API Key Required:** Please click the settings icon in the top right and enter your Gemini API Key to start chatting.');
+  if (!currentApiKey && !currentProxyUrl) {
+    appendMessage('bot', '🔒 **API Key or Proxy URL Required:** Please click the settings icon in the top right and configure either your Gemini API Key or your Google Apps Script Proxy URL to start chatting.');
     toggleModal(true);
     return;
   }
@@ -425,6 +431,33 @@ INSTRUCTIONS:
       maxOutputTokens: 2048
     }
   };
+
+  if (currentProxyUrl) {
+    const proxyBody = {
+      action: 'chat',
+      prompt: promptText,
+      history: chatHistory.map(h => ({ role: h.role, content: h.parts?.[0]?.text || h.content })),
+      systemPrompt: systemPrompt
+    };
+
+    const response = await fetch(currentProxyUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8' // GAS expects text/plain or no preflight for direct POST sometimes, but JSON works too
+      },
+      body: JSON.stringify(proxyBody)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Proxy error: HTTP ${response.status}`);
+    }
+
+    const result = await response.json();
+    if (result.status === 'error') {
+      throw new Error(result.message);
+    }
+    return result.response;
+  }
 
   const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${currentApiKey}`, {
     method: 'POST',
