@@ -1,4 +1,4 @@
-// Google Apps Script Version: v1.2.5 (Taylor's Intelligence Dashboard Self-Healing Indexer & Router)
+// Google Apps Script Version: v1.2.6 (Taylor's Intelligence Dashboard Self-Healing Indexer & Router)
 /**
  * Google Apps Script for Taylor's Intelligence Dashboard:
  * 1. Rapid metadata load (returns only sheet names, avoiding massive downloads on startup)
