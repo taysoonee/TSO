@@ -1,4 +1,4 @@
-// Google Apps Script Version: v1.1.3 (TSO Second Brain Secure Google Drive Router)
+// Google Apps Script Version: v1.2.0 (TSO Second Brain Secure Google Drive Router)
 /**
  * Google Apps Script for TSO Second Brain:
  * 1. Securely searches and reads live markdown/text files from your private Google Drive (.TSO folder).
@@ -79,6 +79,9 @@ function handleChatbotRequest(data) {
     
     // Call Gemini API
     var responseText = callGemini(apiKey, userPrompt, history, context);
+    
+    // Log conversation to Google Drive
+    logChatToDrive(folder, userPrompt, responseText);
     
     return ContentService.createTextOutput(JSON.stringify({
       status: "success",
@@ -249,4 +252,30 @@ function callGemini(apiKey, prompt, history, context) {
   }
   
   return json.candidates[0].content.parts[0].text;
+}
+
+function logChatToDrive(folder, userPrompt, responseText) {
+  try {
+    var logFileName = "chat_history.jsonl";
+    var files = folder.getFilesByName(logFileName);
+    var logFile;
+    
+    var logEntry = {
+      timestamp: new Date().toISOString(),
+      user: userPrompt,
+      model: responseText
+    };
+    var logLine = JSON.stringify(logEntry) + "\n";
+    
+    if (files.hasNext()) {
+      logFile = files.next();
+      var existingContent = logFile.getAs("text/plain").getDataAsString();
+      logFile.setContent(existingContent + logLine);
+    } else {
+      logFile = folder.createFile(logFileName, logLine, "text/plain");
+    }
+  } catch (e) {
+    // Fail silently to prevent chat failure if logging fails
+    console.error("Failed to log chat: " + e.toString());
+  }
 }
