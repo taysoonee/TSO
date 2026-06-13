@@ -1,4 +1,4 @@
-// Google Apps Script Version: v1.5.1 (TSO Second Brain Secure Google Drive Router)
+// Google Apps Script Version: v1.5.2 (TSO Second Brain Secure Google Drive Router)
 /**
  * Google Apps Script for TSO Second Brain:
  * 1. Securely searches and reads live markdown/text files from your private Google Drive (.TSO folder).
@@ -337,5 +337,5 @@ function logChatToSpreadsheet(userPrompt, responseText, promptTokens, candidates
 
 function auth() {
   DriveApp.getRootFolder();
-  SpreadsheetApp.getActiveSpreadsheet();
+  SpreadsheetApp.openById("1Pge1hWSyIii7IAUim4U_s4wMHywHZR3RdCicnQ_xXZ0");
 }
