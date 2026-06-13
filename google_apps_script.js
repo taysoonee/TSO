@@ -91,8 +91,7 @@ function doPost(e) {
       status: "success",
       message: "Survey response recorded successfully."
     }))
-    .setMimeType(ContentService.MimeType.JSON)
-    .setHeader("Access-Control-Allow-Origin", "*");
+    .setMimeType(ContentService.MimeType.JSON);
     
   } catch (error) {
     // Return error response
@@ -100,8 +99,7 @@ function doPost(e) {
       status: "error",
       message: error.toString()
     }))
-    .setMimeType(ContentService.MimeType.JSON)
-    .setHeader("Access-Control-Allow-Origin", "*");
+    .setMimeType(ContentService.MimeType.JSON);
   }
 }
 
@@ -121,8 +119,7 @@ function handleChatbotRequest(data) {
         status: "error",
         message: "API Key not configured in Google Script properties. Please set GEMINI_API_KEY in script settings."
       }))
-      .setMimeType(ContentService.MimeType.JSON)
-      .setHeader("Access-Control-Allow-Origin", "*");
+      .setMimeType(ContentService.MimeType.JSON);
     }
     
     var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey;
@@ -166,8 +163,7 @@ function handleChatbotRequest(data) {
         status: "error",
         message: "Gemini API returned status " + responseCode + ": " + responseText
       }))
-      .setMimeType(ContentService.MimeType.JSON)
-      .setHeader("Access-Control-Allow-Origin", "*");
+      .setMimeType(ContentService.MimeType.JSON);
     }
     
     var result = JSON.parse(responseText);
@@ -177,16 +173,14 @@ function handleChatbotRequest(data) {
       status: "success",
       response: botText
     }))
-    .setMimeType(ContentService.MimeType.JSON)
-    .setHeader("Access-Control-Allow-Origin", "*");
+    .setMimeType(ContentService.MimeType.JSON);
     
   } catch (err) {
     return ContentService.createTextOutput(JSON.stringify({
       status: "error",
       message: err.toString()
     }))
-    .setMimeType(ContentService.MimeType.JSON)
-    .setHeader("Access-Control-Allow-Origin", "*");
+    .setMimeType(ContentService.MimeType.JSON);
   }
 }
 
@@ -195,7 +189,5 @@ function handleChatbotRequest(data) {
  */
 function doOptions(e) {
   return ContentService.createTextOutput("")
-    .setHeader("Access-Control-Allow-Origin", "*")
-    .setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-    .setHeader("Access-Control-Allow-Headers", "Content-Type");
+    .setMimeType(ContentService.MimeType.TEXT);
 }
