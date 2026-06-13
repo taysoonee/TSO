@@ -1,4 +1,4 @@
-// Google Apps Script Version: v1.2.6 (Taylor's Intelligence Dashboard Self-Healing Indexer & Router)
+// Google Apps Script Version: v1.2.7 (Taylor's Intelligence Dashboard Self-Healing Indexer & Router)
 /**
  * Google Apps Script for Taylor's Intelligence Dashboard:
  * 1. Rapid metadata load (returns only sheet names, avoiding massive downloads on startup)
@@ -245,50 +245,62 @@ function handleChatbotRequest(data) {
             }
           });
 
-          var rows = [];
-          var maxRows = 2000; // Cap at 2000 rows per sheet to ensure complete coverage of large datasets
-          
-          // Iterate from bottom (latest) to top (earliest), skipping header row (index 0)
-          for (var i = values.length - 1; i >= 1; i--) {
-            if (rows.length >= maxRows) break;
-
+          // Pre-filter: only keep rows that have at least one non-empty/non-false value (excluding headers)
+          var activeRows = [];
+          for (var i = 1; i < values.length; i++) {
             var row = values[i];
+            var hasAnyVal = false;
+            for (var c = 0; c < Math.min(row.length, 100); c++) {
+              var cellVal = row[c];
+              if (cellVal !== null && cellVal !== "" && cellVal !== undefined && cellVal !== false) {
+                if (typeof cellVal === 'string' && cellVal.trim() === '') {
+                  continue; // Skip whitespace-only cells
+                }
+                hasAnyVal = true;
+                break;
+              }
+            }
+            if (hasAnyVal) {
+              activeRows.push(row);
+            }
+          }
+
+          var processedRows = [];
+          var maxRows = 2000;
+          // Take the last 2000 active rows (latest data)
+          var startIdx = Math.max(0, activeRows.length - maxRows);
+          var rowsToProcess = activeRows.slice(startIdx);
+
+          rowsToProcess.forEach(function(row) {
             var rowObj = {};
             var hasValue = false;
             var hasAcademicValue = false;
             
             headers.forEach(function(header, colIdx) {
-              if (header !== "" && colIdx < 100) { // Cap at 100 columns per sheet
+              if (header !== "" && colIdx < 100) {
                 var val = row[colIdx];
                 if (val instanceof Date) {
                   val = val.toISOString().split('T')[0];
                 }
-                
-                // Strict check to preserve valid 0 or false values
                 if (val !== null && val !== "" && val !== undefined) {
                   rowObj[header] = val;
                   hasValue = true;
-                  
-                  // Check if this is a populated academic column
                   if (academicColIndices.indexOf(colIdx) !== -1) {
                     hasAcademicValue = true;
                   }
                 }
               }
             });
-
-            // Smart Row Filtering: If academic query and academic columns exist,
-            // skip row if it contains no academic data (filters out Nursery/Primary rows)
+            
             if (hasValue) {
               if (isAcademicQuery && academicColIndices.length > 0 && !hasAcademicValue) {
-                continue; 
+                return; 
               }
-              rows.push(rowObj);
+              processedRows.push(rowObj);
             }
-          }
+          });
           
-          // Invert back to preserve chronological top-to-bottom order for the LLM context
-          loadedData[sheetName] = rows.reverse();
+          loadedData[sheetName] = processedRows;
         }
       }
     });
