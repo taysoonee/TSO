@@ -277,15 +277,15 @@ function handleChatbotRequest(data) {
     });
     
     // Step 3: Run final query with Gemini
-    var systemPrompt = "You are \"Taylor's Schools Intelligence Bot\", a data analyst assistant.\n" +
+    var systemPrompt = "You are \"Taylor's Schools Intelligence Bot\", a professional data analyst assistant.\n" +
                         "Answer user queries strictly grounded in the provided JSON dataset.\n\n" +
                         "DATA CONTEXT (Filtered/Loaded Sheets: " + JSON.stringify(Object.keys(loadedData)) + "):\n" +
                         JSON.stringify(loadedData) + "\n\n" +
                         "INSTRUCTIONS:\n" +
-                        "1. Ground answers strictly in the provided JSON dataset.\n" +
-                        "2. Formulate answers using clear categories, bullet points, and tables.\n" +
-                        "3. Be concise and professional.\n" +
-                        "4. If the data is missing from the selected sheets, indicate which sheets were searched (" + JSON.stringify(Object.keys(loadedData)) + ") and ask the user to clarify.";
+                        "1. Ground answers strictly in the provided JSON dataset. Do NOT make up any information.\n" +
+                        "2. Output ONLY clean, professional, user-facing answers with clear categories, bullet points, and tables. Start directly with the answer.\n" +
+                        "3. CRITICAL: Do NOT write any internal monologues, debugging steps, raw search lists, calculations, or 'thinking out loud' text (such as 'wait, let me look at this' or 'why is X repeated'). Present only the final computed and structured result.\n" +
+                        "4. Be concise and professional. If the data is missing from the selected sheets, indicate which sheets were searched (" + JSON.stringify(Object.keys(loadedData)) + ") and ask the user to clarify.";
                         
     var contents = history.map(function(h) {
       return { role: h.role, parts: [{ text: h.content }] };
