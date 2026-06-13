@@ -1,3 +1,4 @@
+console.log("App initialized - v1.2.0 (CORS Fix)");
 // State management
 let surveyData = null;
 
