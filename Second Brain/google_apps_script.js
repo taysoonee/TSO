@@ -1,4 +1,4 @@
-// Google Apps Script Version: v1.2.2 (TSO Second Brain Secure Google Drive Router)
+// Google Apps Script Version: v1.3.0 (TSO Second Brain Secure Google Drive Router)
 /**
  * Google Apps Script for TSO Second Brain:
  * 1. Securely searches and reads live markdown/text files from your private Google Drive (.TSO folder).
@@ -151,22 +151,29 @@ function getSecondBrainContext(parentFolder) {
     return cachedContext;
   }
   
-  var contextParts = [];
+  var compiledContext = "";
   
-  // Find wiki and Reports subfolders
-  var subFolders = parentFolder.getFolders();
-  while (subFolders.hasNext()) {
-    var subFolder = subFolders.next();
-    var name = subFolder.getName();
-    
-    if (name === "wiki" || name === "Reports") {
-      processFolderFiles(subFolder, name, contextParts);
+  // 1. Try reading the compiled context file first (highly optimized)
+  var files = parentFolder.getFilesByName("compiled_context.txt");
+  if (files.hasNext()) {
+    var compiledFile = files.next();
+    compiledContext = compiledFile.getAs("text/plain").getDataAsString();
+  } else {
+    // 2. Fallback: Parse file-by-file recursively if compiled_context.txt is missing
+    var contextParts = [];
+    var subFolders = parentFolder.getFolders();
+    while (subFolders.hasNext()) {
+      var subFolder = subFolders.next();
+      var name = subFolder.getName();
+      
+      if (name === "wiki" || name === "Reports") {
+        processFolderFiles(subFolder, name, contextParts);
+      }
     }
+    compiledContext = contextParts.join("\n\n");
   }
   
-  var compiledContext = contextParts.join("\n\n");
-  
-  if (compiledContext.length < 100000) {
+  if (compiledContext && compiledContext.length < 100000) {
     cache.put("tso_compiled_context", compiledContext, 600); // 10 minutes cache
   }
   
