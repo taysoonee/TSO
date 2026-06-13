@@ -1,9 +1,9 @@
-// Google Apps Script Version: v1.2.1 (Taylor's Intelligence Dashboard Self-Healing Indexer & Router)
+// Google Apps Script Version: v1.2.2 (Taylor's Intelligence Dashboard Self-Healing Indexer & Router)
 /**
  * Google Apps Script for Taylor's Intelligence Dashboard:
  * 1. Rapid metadata load (returns only sheet names, avoiding massive downloads on startup)
  * 2. Self-Healing Indexer (automatically creates a sheet tab named "Index" with default descriptions if it doesn't exist)
- * 3. Dynamic RAG Router (reads descriptions from the "Index" sheet to determine which sheets are relevant to a user query, loading ONLY those sheets)
+ * 3. Token-Safe Dynamic RAG Router (reads descriptions from "Index" to load ONLY relevant sheets, and filters/caps sheet rows to prevent token limits)
  *
  * (Access raw code directly from your TSO GitHub repository)
  */
@@ -199,7 +199,7 @@ function handleChatbotRequest(data) {
       selectedSheets = allSheetNames;
     }
     
-    // Step 2: Load data ONLY from the selected sheets
+    // Step 2: Load data ONLY from the selected sheets with strict row and property limits to prevent token caps
     var loadedData = {};
     selectedSheets.forEach(function(sheetName) {
       var sheet = ss.getSheetByName(sheetName);
@@ -209,18 +209,26 @@ function handleChatbotRequest(data) {
         if (values.length > 0) {
           var headers = values[0].map(function(h) { return h.toString().trim(); });
           var rows = [];
-          for (var i = 1; i < values.length; i++) {
+          
+          var maxRows = 500; // Cap at 500 rows per sheet to prevent exceeding token context limits
+          var rowCount = Math.min(values.length, maxRows + 1);
+          
+          for (var i = 1; i < rowCount; i++) {
             var row = values[i];
             var rowObj = {};
             var hasValue = false;
+            
             headers.forEach(function(header, colIdx) {
-              if (header !== "") {
+              if (header !== "" && colIdx < 30) { // Cap at 30 columns per sheet
                 var val = row[colIdx];
                 if (val instanceof Date) {
                   val = val.toISOString().split('T')[0];
                 }
-                rowObj[header] = val;
-                if (val !== null && val !== "") hasValue = true;
+                // Skip writing empty/null properties to shrink JSON token size significantly
+                if (val !== null && val !== "" && val !== undefined) {
+                  rowObj[header] = val;
+                  hasValue = true;
+                }
               }
             });
             if (hasValue) rows.push(rowObj);
