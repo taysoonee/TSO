@@ -6,8 +6,9 @@ const CONFIG = {
   // LEAVE EMPTY FOR SECURITY. Save your API key in Google Apps Script Script Properties.
   DEFAULT_API_KEY: "",
   
-  // Default folder name in Google Drive
-  DEFAULT_FOLDER_NAME: ".TSO",
+  // Default folder name in Google Drive. 
+  // Since .TSO is a symlink to your "Tay" folder in your work account, this is set to "Tay".
+  DEFAULT_FOLDER_NAME: "Tay",
 
   // Suggested starter queries
   SUGGESTED_QUERIES: [

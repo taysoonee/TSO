@@ -1,4 +1,4 @@
-// Google Apps Script Version: v1.1.2 (TSO Second Brain Secure Google Drive Router)
+// Google Apps Script Version: v1.1.3 (TSO Second Brain Secure Google Drive Router)
 /**
  * Google Apps Script for TSO Second Brain:
  * 1. Securely searches and reads live markdown/text files from your private Google Drive (.TSO folder).
@@ -94,17 +94,21 @@ function handleChatbotRequest(data) {
 }
 
 function getFolderByName(name) {
-  // Method 1: Try exact path traversal in Google Drive
+  // Method 1: Try root level path search (e.g. My Drive/Tay)
+  var rootFolder = getFolderByPath(name);
+  if (rootFolder) return rootFolder;
+  
+  // Method 2: Try exact path traversal inside Second Brain
   var pathFolder = getFolderByPath("1. Tay/Obsidian/Second Brain/" + name);
   if (pathFolder) return pathFolder;
   
-  // Method 2: Search for the folder name directly anywhere in Drive
+  // Method 3: Search for the folder name directly anywhere in Drive
   var folders = DriveApp.getFoldersByName(name);
   if (folders.hasNext()) {
     return folders.next();
   }
   
-  // Method 3: Search for parent folder "Second Brain" first, then look for name inside it
+  // Method 4: Search for parent folder "Second Brain" first, then look for name inside it
   var parents = DriveApp.getFoldersByName("Second Brain");
   while (parents.hasNext()) {
     var parent = parents.next();
