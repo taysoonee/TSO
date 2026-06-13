@@ -7,5 +7,5 @@ const CONFIG = {
   DEFAULT_API_KEY: "",
   DEFAULT_EMBED_URL: "https://datastudio.google.com/embed/reporting/c3c5595c-e603-400f-a941-e4f777d84041/page/pfMFD",
   // If you set this URL, the chatbot will proxy requests through your Google Apps Script
-  DEFAULT_PROXY_URL: ""
+  DEFAULT_PROXY_URL: "https://script.google.com/macros/s/AKfycbytgZ4NyCOONVgpdUfNkhJ5l0KG4MHsWSOP3c8dSCWzlM8WZSethjkBvKq-ePHwE2kCjg/exec"
 };
