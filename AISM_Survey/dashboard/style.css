@@ -785,15 +785,80 @@ body {
   display: none !important;
 }
 
-/* Responsive Grid */
-@media (max-width: 960px) {
+/* Responsive layout under 768px (Mobile & Tablets) */
+@media (max-width: 768px) {
   .app-main {
-    grid-template-columns: 1fr;
-    grid-template-rows: 1fr 1.2fr;
+    display: flex !important;
+    flex-direction: column;
+    height: calc(100vh - 60px - 56px) !important; /* Adjust for both header and bottom nav */
   }
   
   .panel {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
     border-right: none;
     border-bottom: 1px solid var(--border-color);
   }
+  
+  .panel.mobile-hidden {
+    display: none !important;
+  }
+  
+  .mobile-nav {
+    display: flex !important;
+    justify-content: space-around;
+    align-items: center;
+    background-color: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color); /* Bottom border for top nav */
+    height: 56px;
+    width: 100%;
+    z-index: 100;
+  }
+  
+  .mobile-nav-btn {
+    display: flex;
+    flex-direction: row; /* Horizontal layout */
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    height: 100%;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-family: var(--font-family-display);
+    font-weight: 600;
+    cursor: pointer;
+    gap: 8px;
+    position: relative;
+    transition: color var(--transition-fast);
+  }
+  
+  .mobile-nav-btn i {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .mobile-nav-btn.active {
+    color: var(--accent-color);
+  }
+
+  /* Active indicator line at the bottom of the active tab */
+  .mobile-nav-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--accent-gradient);
+    box-shadow: 0 0 10px var(--accent-color);
+  }
+}
+
+/* Hide mobile nav on desktop by default */
+.mobile-nav {
+  display: none;
 }

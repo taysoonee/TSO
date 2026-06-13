@@ -1,4 +1,4 @@
-console.log("App initialized - v1.2.0 (CORS Fix)");
+console.log("App initialized - v1.3.0 (CORS Fix & Responsive Tabbed UI)");
 // State management
 let surveyData = null;
 
@@ -99,6 +99,39 @@ window.addEventListener('DOMContentLoaded', async () => {
     const iconName = isPass ? 'eye-off' : 'eye';
     toggleKeyVisibility.innerHTML = `<i data-lucide="${iconName}"></i>`;
     lucide.createIcons();
+  });
+
+  // Mobile Tab Navigation Switcher
+  const mobileNavBtns = document.querySelectorAll('.mobile-nav-btn');
+  const panels = {
+    'left-panel': document.getElementById('left-panel'),
+    'right-panel': document.getElementById('right-panel')
+  };
+
+  // Initially hide the right panel on mobile by default
+  if (panels['right-panel']) {
+    panels['right-panel'].classList.add('mobile-hidden');
+  }
+
+  mobileNavBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetPanelId = btn.getAttribute('data-panel');
+      
+      // Update nav buttons active state
+      mobileNavBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      // Show target panel, hide others
+      Object.keys(panels).forEach(panelId => {
+        if (panels[panelId]) {
+          if (panelId === targetPanelId) {
+            panels[panelId].classList.remove('mobile-hidden');
+          } else {
+            panels[panelId].classList.add('mobile-hidden');
+          }
+        }
+      });
+    });
   });
 });
 

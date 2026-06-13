@@ -28,10 +28,22 @@
       </div>
     </header>
 
+    <!-- Top Mobile Navigation Bar -->
+    <nav class="mobile-nav" id="mobile-nav">
+      <button class="mobile-nav-btn active" data-panel="left-panel">
+        <i data-lucide="bar-chart-3"></i>
+        <span>Chart View</span>
+      </button>
+      <button class="mobile-nav-btn" data-panel="right-panel">
+        <i data-lucide="message-square"></i>
+        <span>Chat Assistant</span>
+      </button>
+    </nav>
+
     <!-- Main Workspace Split Panel -->
     <main class="app-main">
       <!-- Left: Dashboard Embed -->
-      <section class="panel dashboard-panel">
+      <section class="panel dashboard-panel" id="left-panel">
         <div class="panel-header">
           <div class="panel-title">
             <i data-lucide="bar-chart-3"></i>
@@ -57,7 +69,7 @@
       </section>
 
       <!-- Right: AI Chatbot -->
-      <section class="panel chat-panel">
+      <section class="panel chat-panel" id="right-panel">
         <div class="panel-header">
           <div class="panel-title">
             <i data-lucide="message-square"></i>
@@ -85,7 +97,7 @@
             </button>
           </div>
           <div class="chat-footer">
-            <span>Powered by Gemini 2.5 Flash • Proxy Version: v1.2.0 (CORS Fix)</span>
+            <span>Powered by Gemini 2.5 Flash • Proxy Version: v1.3.0 (CORS Fix & Responsive Tabbed UI)</span>
             <button id="clear-chat-btn" class="text-link-btn">
               <i data-lucide="trash-2"></i> Clear Chat
             </button>
