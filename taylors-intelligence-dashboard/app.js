@@ -521,3 +521,42 @@ function formatInline(text) {
   text = text.replace(/`(.*?)`/g, '<code>$1</code>');
   return text;
 }
+
+// Resizable Splitter Logic
+const leftPanel = document.getElementById('left-panel');
+const rightPanel = document.getElementById('right-panel');
+const dragBar = document.getElementById('drag-bar');
+
+let isDragging = false;
+
+dragBar.addEventListener('mousedown', (e) => {
+  isDragging = true;
+  document.body.classList.add('resizing');
+  dragBar.classList.add('dragging');
+  dashboardIframe.classList.add('no-pointer-events'); // Prevent iframe from capturing mouseevents
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (!isDragging) return;
+  
+  const containerWidth = document.querySelector('.app-main').clientWidth;
+  // Get boundary offset relative to container's left edge
+  const containerOffsetLeft = document.querySelector('.app-main').getBoundingClientRect().left;
+  const leftWidth = e.clientX - containerOffsetLeft;
+  const leftPercentage = (leftWidth / containerWidth) * 100;
+  
+  // Enforce min 20% and max 80% sizes
+  if (leftPercentage > 20 && leftPercentage < 80) {
+    leftPanel.style.flex = `0 0 ${leftPercentage}%`;
+    rightPanel.style.flex = `0 0 ${100 - leftPercentage}%`;
+  }
+});
+
+document.addEventListener('mouseup', () => {
+  if (isDragging) {
+    isDragging = false;
+    document.body.classList.remove('resizing');
+    dragBar.classList.remove('dragging');
+    dashboardIframe.classList.remove('no-pointer-events');
+  }
+});

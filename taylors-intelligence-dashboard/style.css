@@ -100,12 +100,14 @@ body {
 
 /* Split Main Panel */
 .app-main {
-  display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
   flex: 1;
   height: calc(100vh - 60px);
   overflow: hidden;
   background-color: #080b11;
+  position: relative;
 }
 
 .panel {
@@ -113,11 +115,59 @@ body {
   flex-direction: column;
   height: 100%;
   overflow: hidden;
-  border-right: 1px solid var(--border-color);
 }
 
-.panel:last-child {
-  border-right: none;
+.dashboard-panel {
+  flex: 0 0 55%; /* Default 55% width */
+  min-width: 20%;
+  max-width: 80%;
+}
+
+.chat-panel {
+  flex: 0 0 45%; /* Default 45% width */
+  min-width: 20%;
+  max-width: 80%;
+}
+
+/* Drag Resizer */
+.resizer {
+  width: 6px;
+  background-color: var(--border-color);
+  cursor: col-resize;
+  position: relative;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background-color var(--transition-fast);
+}
+
+.resizer:hover, .resizer.dragging {
+  background-color: var(--primary-color);
+}
+
+.resizer-knob {
+  width: 4px;
+  height: 40px;
+  border-radius: 2px;
+  background-color: var(--text-muted);
+  opacity: 0.5;
+  transition: background-color var(--transition-fast), opacity var(--transition-fast);
+}
+
+.resizer:hover .resizer-knob, .resizer.dragging .resizer-knob {
+  background-color: #ffffff;
+  opacity: 1;
+}
+
+/* Resizing behaviors */
+body.resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+
+.no-pointer-events {
+  pointer-events: none !important;
 }
 
 .panel-header {

@@ -32,7 +32,7 @@
     <!-- Main Split Workspace -->
     <main class="app-main">
       <!-- Left: Interactive Charts -->
-      <section class="panel dashboard-panel">
+      <section class="panel dashboard-panel" id="left-panel">
         <div class="panel-header">
           <div class="panel-title">
             <i data-lucide="bar-chart-2"></i>
@@ -57,8 +57,13 @@
         </div>
       </section>
 
+      <!-- Drag Resizer Bar -->
+      <div class="resizer" id="drag-bar">
+        <div class="resizer-knob"></div>
+      </div>
+
       <!-- Right: AI Chatbot -->
-      <section class="panel chat-panel">
+      <section class="panel chat-panel" id="right-panel">
         <div class="panel-header">
           <div class="panel-title">
             <i data-lucide="message-square"></i>
