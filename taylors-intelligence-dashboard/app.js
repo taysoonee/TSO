@@ -1,4 +1,4 @@
-console.log("App initialized - Taylor's Intelligence Dashboard v1.3.0");
+console.log("App initialized - Taylor's Intelligence Dashboard v1.3.1");
 
 // State management
 let dashboardData = null;
@@ -119,10 +119,8 @@ async function fetchLiveSheetMetadata() {
 
 // Setup Dashboard View
 function initDashboard() {
-  if (currentEmbedUrl && currentEmbedUrl.trim() !== '') {
-    dashboardIframe.src = currentEmbedUrl;
-    dashboardIframe.classList.remove('hidden');
-  }
+  const embedUrl = (typeof CONFIG !== 'undefined' ? CONFIG.DEFAULT_EMBED_URL : '');
+  dashboardIframe.src = embedUrl;
 }
 
 
