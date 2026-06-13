@@ -1,4 +1,4 @@
-// Google Apps Script Version: v1.0.0 (Taylor's Intelligence Dashboard Proxy & Data Loader)
+// Google Apps Script Version: v1.0.1 (Taylor's Intelligence Dashboard Proxy & Data Loader)
 /**
  * Google Apps Script for Taylor's Intelligence Dashboard to handle:
  * 1. Secure dynamic data loading (opens private spreadsheet and returns JSON database)
@@ -192,7 +192,7 @@ function handleChatbotRequest(data) {
         
         var estInputTokens = Math.ceil(JSON.stringify(payload).length / 4);
         var estOutputTokens = Math.ceil(botText.length / 4);
-        var estCost = (estInputTokens * 0.000000075) + (estOutputTokens * 0.00000030);
+        var estCost = (estInputTokens * 7.5e-8) + (estOutputTokens * 3e-7);
         
         logSheet.appendRow([
           new Date(), 
