@@ -773,7 +773,7 @@ body.resizing {
     justify-content: space-around;
     align-items: center;
     background-color: var(--bg-secondary);
-    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color); /* Bottom border for top nav */
     height: 56px;
     width: 100%;
     z-index: 100;
@@ -781,7 +781,7 @@ body.resizing {
   
   .mobile-nav-btn {
     display: flex;
-    flex-direction: column;
+    flex-direction: row; /* Horizontal layout */
     align-items: center;
     justify-content: center;
     flex: 1;
@@ -789,21 +789,34 @@ body.resizing {
     background: none;
     border: none;
     color: var(--text-secondary);
-    font-size: 0.75rem;
-    font-family: var(--font-family-sans);
+    font-size: 0.9rem;
+    font-family: var(--font-family-display);
+    font-weight: 600;
     cursor: pointer;
-    gap: 4px;
+    gap: 8px;
+    position: relative;
     transition: color var(--transition-fast);
   }
   
   .mobile-nav-btn i {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
   }
   
   .mobile-nav-btn.active {
     color: #ff4d4d; /* Bright red matching Taylor's Crimson */
-    font-weight: 600;
+  }
+
+  /* Red active indicator line at the bottom of the active tab */
+  .mobile-nav-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--accent-gradient);
+    box-shadow: 0 0 10px var(--primary-color);
   }
 }
 
