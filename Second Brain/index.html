@@ -21,11 +21,6 @@
         <div class="logo-accent"></div>
         <h1>TSO Second Brain Assistant</h1>
       </div>
-      <div class="header-actions">
-        <button id="open-settings-btn" class="icon-btn" title="Settings">
-          <i data-lucide="settings"></i>
-        </button>
-      </div>
     </header>
 
     <!-- Main Workspace -->
@@ -39,7 +34,7 @@
           </div>
           <div class="chat-status">
             <span class="status-dot red" id="db-status-dot"></span>
-            <span id="db-status-text">Configure Apps Script Web App Proxy to begin...</span>
+            <span id="db-status-text">Connecting...</span>
           </div>
         </div>
 
@@ -59,7 +54,7 @@
             </button>
           </div>
           <div class="chat-footer">
-            <span>Powered by Gemini 2.5 Flash • Secure Google Drive Proxy</span>
+            <span>Powered by Gemini 3.5 Flash (v1.1.0) • Secure Google Drive Proxy</span>
             <button id="clear-chat-btn" class="text-link-btn">
               <i data-lucide="trash-2"></i> Clear Chat
             </button>
@@ -67,45 +62,6 @@
         </div>
       </section>
     </main>
-  </div>
-
-  <!-- Settings Dialog (Modal overlay) -->
-  <div class="modal-overlay hidden" id="settings-modal">
-    <div class="modal-card">
-      <div class="modal-header">
-        <div class="modal-title">
-          <i data-lucide="settings"></i>
-          <h2>Assistant Settings</h2>
-        </div>
-        <button id="close-settings-btn" class="icon-btn">
-          <i data-lucide="x"></i>
-        </button>
-      </div>
-      
-      <div class="modal-body">
-        <div class="form-group">
-          <label for="proxy-url-input">Apps Script Proxy URL</label>
-          <input type="password" id="proxy-url-input" placeholder="https://script.google.com/macros/s/.../exec">
-          <small class="form-help">The secure Web App URL deployed from your Google Apps Script project.</small>
-        </div>
-
-        <div class="form-group">
-          <label for="api-key-input">Gemini API Key (Optional)</label>
-          <input type="password" id="api-key-input" placeholder="AIzaSy...">
-          <small class="form-help">Enter only if your Apps Script doesn't have GEMINI_API_KEY set in Script Properties.</small>
-        </div>
-
-        <div class="form-group">
-          <label for="folder-name-input">Google Drive Folder Name</label>
-          <input type="text" id="folder-name-input" value=".TSO">
-          <small class="form-help">The name of the root second brain folder in your Google Drive (default: .TSO).</small>
-        </div>
-      </div>
-
-      <div class="modal-footer">
-        <button id="save-settings-btn" class="primary-btn">Save Configurations</button>
-      </div>
-    </div>
   </div>
 
   <!-- Main JavaScript App -->

@@ -1,4 +1,4 @@
-// Google Apps Script Version: v1.0.0 (TSO Second Brain Secure Google Drive Router)
+// Google Apps Script Version: v1.1.0 (TSO Second Brain Secure Google Drive Router)
 /**
  * Google Apps Script for TSO Second Brain:
  * 1. Securely searches and reads live markdown/text files from your private Google Drive (.TSO folder).
@@ -9,7 +9,7 @@
  * 1. Open Google Drive, create a new Apps Script project.
  * 2. Paste this code, save, and click "Deploy" -> "New deployment".
  * 3. Choose "Web app", set Execute as "Me", and Who has access to "Anyone".
- * 4. Copy the Web App URL and paste it into the chatbot settings or config.js.
+ * 4. Configure script property "GEMINI_API_KEY" to contain your private key in settings.
  */
 
 function doPost(e) {
@@ -37,14 +37,14 @@ function doPost(e) {
 function handleChatbotRequest(data) {
   try {
     var apiKey = data.api_key || PropertiesService.getScriptProperties().getProperty("GEMINI_API_KEY");
-    var folderName = data.folder_name || CONFIG.DEFAULT_FOLDER_NAME || ".TSO";
+    var folderName = data.folder_name || ".TSO";
     var userPrompt = data.prompt;
     var history = data.history || [];
     
     if (!apiKey) {
       return ContentService.createTextOutput(JSON.stringify({
         status: "error",
-        message: "Gemini API key is missing. Please save it in Script Properties or pass it in the request."
+        message: "Gemini API key is missing. Please save it in Script Properties (GEMINI_API_KEY) in your Apps Script Project Settings."
       })).setMimeType(ContentService.MimeType.JSON);
     }
     
@@ -85,7 +85,6 @@ function getFolderByName(name) {
 }
 
 function getSecondBrainContext(parentFolder) {
-  // Check if we have cached context in script properties to make it extremely fast (10-minute cache)
   var cache = CacheService.getUserCache();
   var cachedContext = cache.get("tso_compiled_context");
   if (cachedContext) {
@@ -107,7 +106,6 @@ function getSecondBrainContext(parentFolder) {
   
   var compiledContext = contextParts.join("\n\n");
   
-  // Cache the result (maximum limit of CacheService is 100KB, if larger we just bypass cache or compress)
   if (compiledContext.length < 100000) {
     cache.put("tso_compiled_context", compiledContext, 600); // 10 minutes cache
   }
@@ -141,7 +139,7 @@ function processFolderFiles(folder, folderPath, contextParts) {
 }
 
 function callGemini(apiKey, prompt, history, context) {
-  var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey;
+  var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=" + apiKey;
   
   var systemInstruction = "You are the Taylor's Schools Chief of Staff AI Assistant.\n" +
                           "Your task is to answer questions by grounding your response strictly in the provided Taylor's Schools K-12 Market Intelligence Second Brain files (wiki notes, reports, and indices).\n" +

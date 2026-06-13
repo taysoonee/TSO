@@ -1,8 +1,8 @@
 // State Management
 let currentHistory = [];
-let currentProxyUrl = localStorage.getItem('tso_sb_proxy_url') || (typeof CONFIG !== 'undefined' ? CONFIG.DEFAULT_PROXY_URL : '');
-let currentApiKey = localStorage.getItem('tso_sb_api_key') || '';
-let currentFolderName = localStorage.getItem('tso_sb_folder_name') || (typeof CONFIG !== 'undefined' ? CONFIG.DEFAULT_FOLDER_NAME : '.TSO');
+const currentProxyUrl = (typeof CONFIG !== 'undefined' ? CONFIG.DEFAULT_PROXY_URL : '');
+const currentApiKey = (typeof CONFIG !== 'undefined' ? CONFIG.DEFAULT_API_KEY : '');
+const currentFolderName = (typeof CONFIG !== 'undefined' ? CONFIG.DEFAULT_FOLDER_NAME : '.TSO');
 
 // DOM Elements
 const chatMessages = document.getElementById('chat-messages');
@@ -13,23 +13,9 @@ const clearChatBtn = document.getElementById('clear-chat-btn');
 const dbStatusDot = document.getElementById('db-status-dot');
 const dbStatusText = document.getElementById('db-status-text');
 
-// Settings Elements
-const settingsModal = document.getElementById('settings-modal');
-const openSettingsBtn = document.getElementById('open-settings-btn');
-const closeSettingsBtn = document.getElementById('close-settings-btn');
-const saveSettingsBtn = document.getElementById('save-settings-btn');
-const proxyUrlInput = document.getElementById('proxy-url-input');
-const apiKeyInput = document.getElementById('api-key-input');
-const folderNameInput = document.getElementById('folder-name-input');
-
 // Initialize Application
 window.addEventListener('DOMContentLoaded', () => {
   lucide.createIcons();
-  
-  // Populate settings fields
-  proxyUrlInput.value = currentProxyUrl;
-  apiKeyInput.value = currentApiKey;
-  folderNameInput.value = currentFolderName;
   
   // Update status dot and message
   updateStatus();
@@ -49,18 +35,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
   sendBtn.addEventListener('click', handleSendMessage);
   clearChatBtn.addEventListener('click', clearChat);
-  
-  // Modal toggle listeners
-  openSettingsBtn.addEventListener('click', () => settingsModal.classList.remove('hidden'));
-  closeSettingsBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
-  saveSettingsBtn.addEventListener('click', saveSettings);
-  
-  // Global click to close modal if clicked overlay
-  settingsModal.addEventListener('click', (e) => {
-    if (e.target === settingsModal) {
-      settingsModal.classList.add('hidden');
-    }
-  });
 });
 
 // Update Proxy and Connection Status
@@ -89,7 +63,7 @@ function renderWelcomeMessage() {
 
 I can help you search, summarize, and answer questions directly from your private Obsidian wiki pages and strategic reports stored inside your **Google Drive**.
 
-${!currentProxyUrl ? '⚠️ **Setup Required:** Please click the settings icon above to configure your Apps Script Web App Proxy URL.' : 'Ask me anything to begin!'}`);
+Ask me anything to begin!`);
 }
 
 // Render Quick Action Suggested Queries
@@ -161,7 +135,7 @@ async function handleSendMessage() {
   } catch (error) {
     thinkingIndicator.remove();
     console.error('API Error:', error);
-    appendMessage('bot', `❌ **Proxy Connection Error:** ${error.message}. Please check your web app deployment or API settings.`);
+    appendMessage('bot', `❌ **Proxy Connection Error:** ${error.message}. Please check your Web App deployment.`);
   }
 }
 
@@ -193,21 +167,6 @@ async function callProxyAPI(promptText) {
     throw new Error(result.message);
   }
   return result.response;
-}
-
-// Save Settings from Modal
-function saveSettings() {
-  currentProxyUrl = proxyUrlInput.value.trim();
-  currentApiKey = apiKeyInput.value.trim();
-  currentFolderName = folderNameInput.value.trim();
-  
-  localStorage.setItem('tso_sb_proxy_url', currentProxyUrl);
-  localStorage.setItem('tso_sb_api_key', currentApiKey);
-  localStorage.setItem('tso_sb_folder_name', currentFolderName);
-  
-  updateStatus();
-  settingsModal.classList.add('hidden');
-  clearChat();
 }
 
 // Lightweight Custom Markdown Parser for UI Bubbles
