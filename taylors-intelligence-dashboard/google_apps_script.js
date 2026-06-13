@@ -1,8 +1,9 @@
-// Google Apps Script Version: v1.1.2 (Taylor's Intelligence Dashboard Dynamic Router & Proxy)
+// Google Apps Script Version: v1.2.0 (Taylor's Intelligence Dashboard Self-Healing Indexer & Router)
 /**
  * Google Apps Script for Taylor's Intelligence Dashboard:
  * 1. Rapid metadata load (returns only sheet names, avoiding massive downloads on startup)
- * 2. Intelligent Routing (reads user query, asks Gemini which sheets are relevant, loads ONLY those sheets, and answers the query)
+ * 2. Self-Healing Indexer (automatically creates a sheet tab named "Index" with default descriptions if it doesn't exist)
+ * 3. Dynamic RAG Router (reads descriptions from the "Index" sheet to determine which sheets are relevant to a user query, loading ONLY those sheets)
  *
  * (Access raw code directly from your TSO GitHub repository)
  */
@@ -34,7 +35,7 @@ function doPost(e) {
 }
 
 /**
- * Returns only the sheet names in the workbook (extremely fast load)
+ * Returns only the sheet names in the workbook (excluding admin sheets)
  */
 function handleLoadData(data) {
   try {
@@ -52,7 +53,7 @@ function handleLoadData(data) {
     
     sheets.forEach(function(sheet) {
       var name = sheet.getName();
-      if (name !== "Chat Logs") {
+      if (name !== "Chat Logs" && name !== "Index") {
         sheetNames.push(name);
       }
     });
@@ -71,7 +72,58 @@ function handleLoadData(data) {
 }
 
 /**
- * Intelligent Dynamic Routing Chat Handler
+ * Dynamically reads the sheet descriptions from the "Index" tab.
+ * Automatically creates and populates the tab with default descriptions if missing.
+ */
+function getSheetDescriptions(ss) {
+  var indexSheet = ss.getSheetByName("Index");
+  var descriptions = {};
+  
+  var defaults = {
+    "Fees": "Contains tuition/school fees, AND academic exam results (IB average score, IB student counts for 45/44/>=40/pass, A-Level A*/A/B/C/pass counts, IGCSE A*/A/B/C/pass counts, and HSC Bands 1-6) for Malaysian schools.",
+    "SG Fees": "Contains tuition/school fees, AND academic exam results (IB average score, IB student counts for 45/44/>=40/pass, A-Level A*/A/B/C/pass counts, IGCSE A*/A/B/C/pass counts, and HSC Bands 1-6) for Singaporean schools.",
+    "Enrolment": "Contains student enrolment numbers, school capacity, class capacities, intake stats, and historical headcount figures.",
+    "Academic Results": "Contains historical examination results, including IGCSE pass rates, A-Level grades, IBDP scores, and student academic performance records."
+  };
+  
+  if (!indexSheet) {
+    try {
+      indexSheet = ss.insertSheet("Index");
+      indexSheet.appendRow(["Sheet Name", "Description"]);
+      for (var sheetName in defaults) {
+        indexSheet.appendRow([sheetName, defaults[sheetName]]);
+      }
+    } catch (e) {
+      Logger.log("Could not create Index sheet: " + e.toString());
+    }
+    return defaults;
+  }
+  
+  try {
+    var values = indexSheet.getDataRange().getValues();
+    for (var i = 1; i < values.length; i++) {
+      var sName = values[i][0].toString().trim();
+      var sDesc = values[i][1].toString().trim();
+      if (sName !== "") {
+        descriptions[sName] = sDesc;
+      }
+    }
+  } catch (readErr) {
+    Logger.log("Failed reading Index sheet: " + readErr.toString());
+  }
+  
+  // Merge missing defaults
+  for (var key in defaults) {
+    if (!descriptions[key]) {
+      descriptions[key] = defaults[key];
+    }
+  }
+  
+  return descriptions;
+}
+
+/**
+ * Intelligent Dynamic Routing Chat Handler using sheet-based metadata index
  */
 function handleChatbotRequest(data) {
   try {
@@ -95,19 +147,16 @@ function handleChatbotRequest(data) {
     }
     
     var ss = SpreadsheetApp.openById(spreadsheetId);
+    
+    // Load descriptions dynamically from "Index" tab
+    var sheetDescriptions = getSheetDescriptions(ss);
+    
     var sheets = ss.getSheets();
     var allSheetNames = [];
     sheets.forEach(function(s) {
-      if (s.getName() !== "Chat Logs") allSheetNames.push(s.getName());
+      var name = s.getName();
+      if (name !== "Chat Logs" && name !== "Index") allSheetNames.push(name);
     });
-    
-    // Metadata dictionary defining the contents of key tabs to help the router make perfect decisions
-    var sheetDescriptions = {
-      "Fees": "Contains tuition/school fees, AND academic exam results (IB average score, IB student counts for 45/44/>=40/pass, A-Level A*/A/B/C/pass counts, IGCSE A*/A/B/C/pass counts, and HSC Bands 1-6) for Malaysian schools.",
-      "SG Fees": "Contains tuition/school fees, AND academic exam results (IB average score, IB student counts for 45/44/>=40/pass, A-Level A*/A/B/C/pass counts, IGCSE A*/A/B/C/pass counts, and HSC Bands 1-6) for Singaporean schools.",
-      "Enrolment": "Contains student enrolment numbers, school capacity, class capacities, intake stats, and historical headcount figures.",
-      "Academic Results": "Contains historical examination results, including IGCSE pass rates, A-Level grades, IBDP scores, and student academic performance records."
-    };
     
     var sheetsInfo = allSheetNames.map(function(name) {
       return {
@@ -143,7 +192,6 @@ function handleChatbotRequest(data) {
       var rawJson = routerText.candidates[0].content.parts[0].text;
       selectedSheets = JSON.parse(rawJson);
     } catch (routeErr) {
-      // Fallback: if router fails, load all sheets to be safe
       selectedSheets = allSheetNames;
     }
     
@@ -178,7 +226,7 @@ function handleChatbotRequest(data) {
       }
     });
     
-    // Step 3: Run the final analysis query with Gemini using the filtered dataset
+    // Step 3: Run final query with Gemini
     var systemPrompt = "You are \"Taylor's Schools Intelligence Bot\", a data analyst assistant.\n" +
                         "Answer user queries strictly grounded in the provided JSON dataset.\n\n" +
                         "DATA CONTEXT (Filtered/Loaded Sheets: " + JSON.stringify(Object.keys(loadedData)) + "):\n" +
@@ -212,7 +260,7 @@ function handleChatbotRequest(data) {
     var result = JSON.parse(resultText);
     var botText = result.candidates[0].content.parts[0].text;
     
-    // Step 4: Log conversation to Chat Logs
+    // Step 4: Log conversation
     try {
       var logSheet = ss.getSheetByName("Chat Logs");
       if (!logSheet) {
