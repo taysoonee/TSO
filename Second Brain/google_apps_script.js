@@ -1,4 +1,4 @@
-// Google Apps Script Version: v1.5.2 (TSO Second Brain Secure Google Drive Router)
+// Google Apps Script Version: v1.6.0 (TSO Second Brain Secure Google Drive Router)
 /**
  * Google Apps Script for TSO Second Brain:
  * 1. Securely searches and reads live markdown/text files from your private Google Drive (.TSO folder).
@@ -75,7 +75,10 @@ function handleChatbotRequest(data) {
     }
     
     // Load and compile the Second Brain files (wiki and Reports)
-    var context = getSecondBrainContext(folder);
+    var fullContext = getSecondBrainContext(folder);
+    
+    // Retrieve only the relevant documents based on user prompt (RAG optimization)
+    var context = getRankedContext(fullContext, userPrompt, 25000); // Limit to ~6,000 tokens
     
     // Call Gemini API
     var geminiResult = callGemini(apiKey, userPrompt, history, context);
@@ -338,4 +341,86 @@ function logChatToSpreadsheet(userPrompt, responseText, promptTokens, candidates
 function auth() {
   DriveApp.getRootFolder();
   SpreadsheetApp.openById("1Pge1hWSyIii7IAUim4U_s4wMHywHZR3RdCicnQ_xXZ0");
+}
+
+function getRankedContext(compiledContext, userPrompt, maxChars) {
+  maxChars = maxChars || 25000;
+  
+  if (!compiledContext || !userPrompt) return "";
+  
+  // 1. Extract keywords (lowercase, alphanumeric, length > 2, strip common stopwords)
+  var stopwords = ["the", "a", "an", "and", "or", "but", "about", "for", "on", "in", "with", "is", "are", "was", "were", "to", "of", "what", "tell", "me", "show", "summarise", "summarize", "find", "how", "what", "who", "where", "why"];
+  var words = userPrompt.toLowerCase().replace(/[^a-z0-9\s]/g, "").split(/\s+/);
+  var keywords = [];
+  for (var i = 0; i < words.length; i++) {
+    var w = words[i].trim();
+    if (w.length > 2 && stopwords.indexOf(w) === -1) {
+      keywords.push(w);
+    }
+  }
+  
+  if (keywords.length === 0) {
+    // Fallback: return the first part of context if no search keywords found
+    return compiledContext.substring(0, maxChars);
+  }
+
+  // 2. Split compiled context into individual documents
+  var docs = compiledContext.split("\n\n# File: ");
+  var scoredDocs = [];
+  
+  for (var i = 0; i < docs.length; i++) {
+    var doc = docs[i].trim();
+    if (!doc) continue;
+    
+    // Reconstruct document header
+    var prefix = (i === 0) ? "" : "# File: ";
+    var fullText = prefix + doc;
+    var lowerText = fullText.toLowerCase();
+    
+    // Count keyword occurrences (fast indexOf loop, immune to regex injection)
+    var matches = 0;
+    for (var k = 0; k < keywords.length; k++) {
+      var kw = keywords[k];
+      var index = lowerText.indexOf(kw);
+      while (index !== -1) {
+        matches++;
+        index = lowerText.indexOf(kw, index + kw.length);
+      }
+    }
+    
+    // Normalize score by text length to prevent bias toward longer files
+    var score = matches / (lowerText.length || 1);
+    
+    if (score > 0) {
+      scoredDocs.push({
+        text: fullText,
+        score: score
+      });
+    }
+  }
+  
+  // 3. Sort by normalized match score descending
+  scoredDocs.sort(function(a, b) {
+    return b.score - a.score;
+  });
+  
+  // 4. Accumulate top documents up to character limit
+  var selectedParts = [];
+  var currentLength = 0;
+  
+  for (var i = 0; i < scoredDocs.length; i++) {
+    var doc = scoredDocs[i];
+    if (currentLength + doc.text.length <= maxChars) {
+      selectedParts.push(doc.text);
+      currentLength += doc.text.length;
+    } else {
+      break;
+    }
+  }
+  
+  if (selectedParts.length === 0) {
+    return compiledContext.substring(0, maxChars);
+  }
+  
+  return selectedParts.join("\n\n");
 }
