@@ -1,4 +1,4 @@
-// Google Apps Script Version: v1.1.0 (Taylor's Intelligence Dashboard Dynamic Router & Proxy)
+// Google Apps Script Version: v1.1.1 (Taylor's Intelligence Dashboard Dynamic Router & Proxy)
 /**
  * Google Apps Script for Taylor's Intelligence Dashboard:
  * 1. Rapid metadata load (returns only sheet names, avoiding massive downloads on startup)
@@ -101,9 +101,24 @@ function handleChatbotRequest(data) {
       if (s.getName() !== "Chat Logs") allSheetNames.push(s.getName());
     });
     
+    // Metadata dictionary defining the contents of key tabs to help the router make perfect decisions
+    var sheetDescriptions = {
+      "Fees": "Contains tuition fees, application fees, registration fees, deposit rates, and recurring annual/term fees by year group for Malaysian schools.",
+      "SG Fees": "Contains tuition fees, registration fees, deposit rates, and recurring school fees for Singaporean schools.",
+      "Enrolment": "Contains student enrolment numbers, school capacity, class capacities, intake stats, and historical headcount figures.",
+      "Academic Results": "Contains historical examination results, including IGCSE pass rates, A-Level grades, IBDP scores, and student academic performance records."
+    };
+    
+    var sheetsInfo = allSheetNames.map(function(name) {
+      return {
+        name: name,
+        description: sheetDescriptions[name] || "General data sheet."
+      };
+    });
+    
     // Step 1: Query Gemini to find out which sheets are relevant to the user query
-    var routingPrompt = "You are a database router. Given a user query and a list of sheet names, determine which sheets are relevant to answer the query. Return ONLY a valid JSON list of strings (matching the exact sheet names). Do not add any explanation or markdown formatting.\n\n" +
-                        "Sheet Names: " + JSON.stringify(allSheetNames) + "\n\n" +
+    var routingPrompt = "You are a database router. Given a user query and a list of available sheets with their descriptions, determine which sheets are relevant to answer the query. Return ONLY a valid JSON list of strings representing the exact sheet names. Do not add any explanation or markdown formatting.\n\n" +
+                        "Available Sheets with Descriptions:\n" + JSON.stringify(sheetsInfo) + "\n\n" +
                         "User Query: \"" + prompt + "\"\n\n" +
                         "Response format: [\"SheetName1\", \"SheetName2\"]";
                         
