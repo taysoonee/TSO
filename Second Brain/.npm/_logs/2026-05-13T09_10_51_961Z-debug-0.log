@@ -1,0 +1,16 @@
+0 verbose cli /usr/local/bin/node /usr/local/bin/npm
+1 info using npm@11.13.0
+2 info using node@v22.12.0
+3 silly config load:file:/usr/local/lib/node_modules/npm/npmrc
+4 silly config load:file:/Users/soonee.tay/Library/CloudStorage/GoogleDrive-soonee.tay@taylorsschools.com/My Drive/Tay/.npmrc
+5 silly config load:file:/usr/local/etc/npmrc
+6 verbose title npm root
+7 verbose argv "root" "--global"
+8 verbose logfile logs-max:10 dir:/Users/soonee.tay/Library/CloudStorage/GoogleDrive-soonee.tay@taylorsschools.com/My Drive/Tay/.npm/_logs/2026-05-13T09_10_51_961Z-
+9 verbose logfile /Users/soonee.tay/Library/CloudStorage/GoogleDrive-soonee.tay@taylorsschools.com/My Drive/Tay/.npm/_logs/2026-05-13T09_10_51_961Z-debug-0.log
+10 verbose cwd /Users/soonee.tay/Library/CloudStorage/GoogleDrive-soonee.tay@taylorsschools.com/My Drive/Tay
+11 verbose os Darwin 25.3.0
+12 verbose node v22.12.0
+13 verbose npm  v11.13.0
+14 verbose exit 0
+15 info ok

@@ -1,0 +1,7 @@
+# Detik Harapan Sdn Bhd (IGB International School)
+
+## Financial Overview & Capital Structure
+Detik Harapan functions as the educational operator for IGB International School (Sierramas, Sungai Buloh). It operates under a long-term, cancellable land lease (RM 600,000 per annum) from a fellow subsidiary. The entity is highly leveraged, relying structurally on its immediate holding company, IGB Corporation Berhad, to meet financial obligations. Total bank borrowings peaked expansively (RM 100.1M in 2015) to fund heavy initial capex and operational infrastructure.
+
+## Strategic Implications
+The school launched with significant initial deficits, reporting a net loss of RM 15.2M in 2014 and RM 22.9M in 2015, despite achieving RM 21.5M in cash receipts by the latter year. This confirms the exhaustive capital requirements of premium tier market entry, directly validating [[Thesis 4: Greenfield/Brownfield Saturation Limits]]. The parent company's continued financial subvention ensures IGBIS can sustain operational losses while competing fiercely for the upper-tier segment without immediate insolvency pressure. We must continue to track their bursary activity as they attempt to offset their debt-servicing costs through volume capture.

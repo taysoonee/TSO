@@ -68,6 +68,35 @@ window.addEventListener('DOMContentLoaded', async () => {
   sendBtn.addEventListener('click', handleSendMessage);
   clearChatBtn.addEventListener('click', clearChat);
 
+  // Mobile Tab Navigation Switcher
+  const mobileNavBtns = document.querySelectorAll('.mobile-nav-btn');
+  const panels = {
+    'left-panel': document.getElementById('left-panel'),
+    'right-panel': document.getElementById('right-panel')
+  };
+
+  // Initially hide the right panel on mobile by default
+  panels['right-panel'].classList.add('mobile-hidden');
+
+  mobileNavBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetPanelId = btn.getAttribute('data-panel');
+      
+      // Update nav buttons active state
+      mobileNavBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      // Show target panel, hide others
+      Object.keys(panels).forEach(panelId => {
+        if (panelId === targetPanelId) {
+          panels[panelId].classList.remove('mobile-hidden');
+        } else {
+          panels[panelId].classList.add('mobile-hidden');
+        }
+      });
+    });
+  });
+
 });
 
 // Load survey database dynamically from Proxy (or local JSON fallback)

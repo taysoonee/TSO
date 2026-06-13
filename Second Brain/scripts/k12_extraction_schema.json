@@ -1,0 +1,13 @@
+{
+  "school_name": "Full official name of the school",
+  "jurisdiction": "Singapore/Malaysia/Other (specify city)",
+  "financial_period": "YYYY (e.g., FY2018)",
+  "metrics": {
+    "revenue": "Total revenue in local currency",
+    "profit_loss": "Net profit or loss after tax",
+    "student_count": "Total enrollment number if available",
+    "tuition_fees": "Range of annual tuition fees per student"
+  },
+  "strategic_notes": "Summary of key highlights (expansion plans, debt levels, parent company moves)",
+  "archive_folder": "Logical folder name for K12_Archive (e.g., 'Singapore/Tier-1')"
+}

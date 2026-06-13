@@ -1,0 +1,18 @@
+# Ignore local environment files
+.env
+.venv/
+.DS_Store
+agy.log
+*.lock
+__pycache__/
+
+# Ignore raw data files inside Second Brain
+Second Brain/raw/
+Second Brain/.venv/
+Second Brain/.env
+Second Brain/agy.log
+Second Brain/.obsidian/
+Second Brain/.DS_Store
+Second Brain/scripts/__pycache__/
+Second Brain/.gemini/
+Second Brain/.vscode/
