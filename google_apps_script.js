@@ -169,15 +169,28 @@ function handleChatbotRequest(data) {
     var result = JSON.parse(responseText);
     var botText = result.candidates[0].content.parts[0].text;
     
-    // Log the conversation to a sheet named "Chat Logs" in the background
+    // Log the conversation and estimated costs to a sheet named "Chat Logs" in the background
     try {
       var ss = SpreadsheetApp.getActiveSpreadsheet();
       var logSheet = ss.getSheetByName("Chat Logs");
       if (!logSheet) {
         logSheet = ss.insertSheet("Chat Logs");
-        logSheet.appendRow(["Timestamp", "User Query", "Bot Response"]);
+        logSheet.appendRow(["Timestamp", "User Query", "Bot Response", "Est. Input Tokens", "Est. Output Tokens", "Est. Cost ($)"]);
       }
-      logSheet.appendRow([new Date(), prompt, botText]);
+      
+      // Calculate estimated tokens (1 token ≈ 4 characters)
+      var estInputTokens = Math.ceil(JSON.stringify(payload).length / 4);
+      var estOutputTokens = Math.ceil(botText.length / 4);
+      var estCost = (estInputTokens * 0.000000075) + (estOutputTokens * 0.00000030);
+      
+      logSheet.appendRow([
+        new Date(), 
+        prompt, 
+        botText, 
+        estInputTokens, 
+        estOutputTokens, 
+        Number(estCost.toFixed(6))
+      ]);
     } catch (logErr) {
       Logger.log("Failed to log conversation: " + logErr.toString());
     }
