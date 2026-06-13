@@ -1,4 +1,4 @@
-// Google Apps Script Version: v1.3.3 (TSO Second Brain Secure Google Drive Router)
+// Google Apps Script Version: v1.3.4 (TSO Second Brain Secure Google Drive Router)
 /**
  * Google Apps Script for TSO Second Brain:
  * 1. Securely searches and reads live markdown/text files from your private Google Drive (.TSO folder).
@@ -81,11 +81,16 @@ function handleChatbotRequest(data) {
     var responseText = callGemini(apiKey, userPrompt, history, context);
     
     // Log conversation to Google Drive
-    logChatToDrive(folder, userPrompt, responseText);
+    var logWarning = "";
+    try {
+      logChatToDrive(folder, userPrompt, responseText);
+    } catch (logErr) {
+      logWarning = "\n\n⚠️ **Chat Logging Warning**: " + logErr.toString() + " (Please verify your Google Drive sharing/write permissions for the resolved folder).";
+    }
     
     return ContentService.createTextOutput(JSON.stringify({
       status: "success",
-      response: responseText
+      response: responseText + logWarning
     })).setMimeType(ContentService.MimeType.JSON);
     
   } catch (err) {
@@ -298,8 +303,7 @@ function logChatToDrive(folder, userPrompt, responseText) {
   try {
     lock.waitLock(15000); // 15-second timeout to prevent concurrent write corruption
   } catch (e) {
-    console.error("Could not obtain lock to write log: " + e.toString());
-    return;
+    throw new Error("Could not obtain LockService lock to write log: " + e.toString());
   }
 
   try {
@@ -332,8 +336,7 @@ function logChatToDrive(folder, userPrompt, responseText) {
       targetFolder.createFile(logFileName, logLine, "text/plain");
     }
   } catch (e) {
-    // Fail silently to prevent chat failure if logging fails
-    console.error("Failed to log chat: " + e.toString());
+    throw new Error("Failed to write to folder '" + targetFolder.getName() + "': " + e.toString());
   } finally {
     lock.releaseLock();
   }
