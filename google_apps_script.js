@@ -169,6 +169,19 @@ function handleChatbotRequest(data) {
     var result = JSON.parse(responseText);
     var botText = result.candidates[0].content.parts[0].text;
     
+    // Log the conversation to a sheet named "Chat Logs" in the background
+    try {
+      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var logSheet = ss.getSheetByName("Chat Logs");
+      if (!logSheet) {
+        logSheet = ss.insertSheet("Chat Logs");
+        logSheet.appendRow(["Timestamp", "User Query", "Bot Response"]);
+      }
+      logSheet.appendRow([new Date(), prompt, botText]);
+    } catch (logErr) {
+      Logger.log("Failed to log conversation: " + logErr.toString());
+    }
+    
     return ContentService.createTextOutput(JSON.stringify({
       status: "success",
       response: botText
