@@ -191,3 +191,11 @@ function doOptions(e) {
   return ContentService.createTextOutput("")
     .setMimeType(ContentService.MimeType.TEXT);
 }
+
+/**
+ * Run this function manually in the editor to force the Authorization popup!
+ */
+function authorizeScript() {
+  UrlFetchApp.fetch("https://generativelanguage.googleapis.com/");
+  Logger.log("Authorized successfully!");
+}
