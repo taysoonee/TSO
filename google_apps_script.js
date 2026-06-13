@@ -1,3 +1,4 @@
+// Google Apps Script Version: v1.2.0 (CORS Fix & Cost Tracking)
 /**
  * Google Apps Script to handle survey form submissions and secure Chatbot requests.
  * Paste this code inside your Google Spreadsheet's Apps Script editor:
