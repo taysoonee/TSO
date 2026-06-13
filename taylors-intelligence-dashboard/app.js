@@ -1,4 +1,4 @@
-console.log("App initialized - Taylor's Intelligence Dashboard v1.4.1");
+console.log("App initialized - Taylor's Intelligence Dashboard v1.4.2");
 
 // State management
 let dashboardData = null;

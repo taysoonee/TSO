@@ -1,4 +1,4 @@
-// Google Apps Script Version: v1.2.8 (Taylor's Intelligence Dashboard Self-Healing Indexer & Router)
+// Google Apps Script Version: v1.2.9 (Taylor's Intelligence Dashboard Self-Healing Indexer & Router)
 /**
  * Google Apps Script for Taylor's Intelligence Dashboard:
  * 1. Rapid metadata load (returns only sheet names, avoiding massive downloads on startup)
@@ -85,13 +85,18 @@ function getSheetDescriptions(ss) {
     "Enrolment": "Contains student enrolment numbers, school capacity, class capacities, intake stats, and historical headcount figures for Taylor's schools.",
     "Academic Results": "Contains historical examination results, including IGCSE pass rates, A-Level grades, IBDP scores, and student academic performance records for Taylor's schools."
   };
+
+  var defaultFields = {
+    "Fees": "Year, Type of Schools, Abbreviation of the School, Full Name of the School, Annual Tuition Fees for Nursery, Annual Tuition Fees for Reception, Annual Tuition Fees for Year 1, Annual Tuition Fees for Year 2, Annual Tuition Fees for Year 3, Annual Tuition Fees for Year 4, Annual Tuition Fees for Year 5, Annual Tuition Fees for Year 6, Annual Tuition Fees for Year 7, Annual Tuition Fees for Year 8, Annual Tuition Fees for Year 9, Annual Tuition Fees for Year 10, Annual Tuition Fees for Year 11, Annual Tuition Fees for Year 12, Annual Tuition Fees for Year 13, Application Fee 1, Application Fee 2, Application Fee 3, Registration Fee 1, Registration Fee 2, Registration Fee 3, Registration Fee 4, Annual Recurring Fees for Nursery, Annual Recurring Fees for Reception, Annual Recurring Fees for Year 1, Annual Recurring Fees for Year 2, Annual Recurring Fees for Year 3, Annual Recurring Fees for Year 4, Annual Recurring Fees for Year 5, Annual Recurring Fees for Year 6, Annual Recurring Fees for Year 7, Annual Recurring Fees for Year 8, Annual Recurring Fees for Year 9, Annual Recurring Fees for Year 10, Annual Recurring Fees for Year 11, Annual Recurring Fees for Year 12, Annual Recurring Fees for Year 13, Annual EAL Fees, Annual Full Boarding Fees, Annual Weekly Boarding Fees, Annual Fees for Nursery, Annual Fees for Reception, Annual Fees for Year 1, Annual Fees for Year 2, Annual Fees for Year 3, Annual Fees for Year 4, Annual Fees for Year 5, Annual Fees for Year 6, Annual Fees for Year 7, Annual Fees for Year 8, Annual Fees for Year 9, Annual Fees for Year 10, Annual Fees for Year 11, Annual Fees for Year 12, Annual Fees for Year 13, Average Annual EYC Fees, Average Primary School Fees, Average Secondary School Fees, Average A-Levels or IB fees, Average Annual Fees from Year 1 to Year 11, Average Annual Fees from Year 1 to Year 13, Average Entry Fee, Average Recurring Fee, Enrolment, Capacity, Competitors of TSO Schools, IB Score for Bilingual, IB Average Results, IB Scores 45 points, IB Scores 44 points, IB Scores above 40 points, IB Score that pass, A-Level score with A*, A-Level score with A* / A, A-Level score with A* / B, A-Level score with A* / C, A-Level score with Pass, IGCSE Score with A*, IGCSE Score with A*/A, IGCSE Score with A*/B, IGCSE Score with A*/C, IGCSE Score with Pass, HSC Score with Band 5 / 6, HSC Score with Band 3 / 4, HSC Score with Band 1 / 2, Tuition fees Discount for 2nd Child, Tuition fees Discount for 3rd Child, Tuition fees Discount for 4th Child, Tuition fees Discount for 5th Child, Sibling Registration Discount, State, Academic Year",
+    "SG Fees": "Year, Type of Schools, Abbreviation of the School, Full Name of the School, Annual Tuition Fees for Nursery, Annual Tuition Fees for Reception, Annual Tuition Fees for Year 1, Annual Tuition Fees for Year 2, Annual Tuition Fees for Year 3, Annual Tuition Fees for Year 4, Annual Tuition Fees for Year 5, Annual Tuition Fees for Year 6, Annual Tuition Fees for Year 7, Annual Tuition Fees for Year 8, Annual Tuition Fees for Year 9, Annual Tuition Fees for Year 10, Annual Tuition Fees for Year 11, Annual Tuition Fees for Year 12, Annual Tuition Fees for Year 13, Application Fee 1, Application Fee 2, Application Fee 3, Registration Fee 1, Registration Fee 2, Registration Fee 3, Registration Fee 4, Annual Recurring Fees for Nursery, Annual Recurring Fees for Reception, Annual Recurring Fees for Year 1, Annual Recurring Fees for Year 2, Annual Recurring Fees for Year 3, Annual Recurring Fees for Year 4, Annual Recurring Fees for Year 5, Annual Recurring Fees for Year 6, Annual Recurring Fees for Year 7, Annual Recurring Fees for Year 8, Annual Recurring Fees for Year 9, Annual Recurring Fees for Year 10, Annual Recurring Fees for Year 11, Annual Recurring Fees for Year 12, Annual Recurring Fees for Year 13, Annual EAL Fees, Annual Full Boarding Fees, Annual Weekly Boarding Fees, Annual Fees for Nursery, Annual Fees for Reception, Annual Fees for Year 1, Annual Fees for Year 2, Annual Fees for Year 3, Annual Fees for Year 4, Annual Fees for Year 5, Annual Fees for Year 6, Annual Fees for Year 7, Annual Fees for Year 8, Annual Fees for Year 9, Annual Fees for Year 10, Annual Fees for Year 11, Annual Fees for Year 12, Annual Fees for Year 13, Average Annual EYC Fees, Average Primary School Fees, Average Secondary School Fees, Average A-Levels or IB fees, Average Annual Fees from Year 1 to Year 11, Average Annual Fees from Year 1 to Year 13, Average Entry Fee, Average Recurring Fee, Enrolment, Capacity, Competitors of TSO Schools, IB Score for Bilingual, IB Average Results, IB Scores 45 points, IB Scores 44 points, IB Scores above 40 points, IB Score that pass, A-Level score with A*, A-Level score with A* / A, A-Level score with A* / B, A-Level score with A* / C, A-Level score with Pass, IGCSE Score with A*, IGCSE Score with A*/A, IGCSE Score with A*/B, IGCSE Score with A*/C, IGCSE Score with Pass, HSC Score with Band 5 / 6, HSC Score with Band 3 / 4, HSC Score with Band 1 / 2, Tuition fees Discount for 2nd Child, Tuition fees Discount for 3rd Child, Tuition fees Discount for 4th Child, Tuition fees Discount for 5th Child, Sibling Registration Discount, State, Academic Year"
+  };
   
   if (!indexSheet) {
     try {
       indexSheet = ss.insertSheet("Index");
-      indexSheet.appendRow(["Sheet Name", "Description"]);
+      indexSheet.appendRow(["Sheet Name", "Description", "Key Columns / Fields"]);
       for (var sheetName in defaults) {
-        indexSheet.appendRow([sheetName, defaults[sheetName]]);
+        indexSheet.appendRow([sheetName, defaults[sheetName], defaultFields[sheetName] || ""]);
       }
     } catch (e) {
       Logger.log("Could not create Index sheet: " + e.toString());
@@ -100,6 +105,12 @@ function getSheetDescriptions(ss) {
   }
   
   try {
+    // Check if headers need updating to 3 columns
+    var firstRow = indexSheet.getRange(1, 1, 1, 3).getValues()[0];
+    if (firstRow[0].toString().trim() !== "Sheet Name" || firstRow[1].toString().trim() !== "Description" || firstRow[2].toString().trim() !== "Key Columns / Fields") {
+      indexSheet.getRange(1, 1, 1, 3).setValues([["Sheet Name", "Description", "Key Columns / Fields"]]);
+    }
+
     var range = indexSheet.getDataRange();
     var values = range.getValues();
     var sheetRowMap = {};
@@ -113,17 +124,28 @@ function getSheetDescriptions(ss) {
       }
     }
     
-    // Auto-update missing or outdated index descriptions
+    // Auto-update missing or outdated index descriptions/fields
     for (var key in defaults) {
       var currentDesc = descriptions[key] || "";
       var lowerDesc = currentDesc.toLowerCase();
+      var rowNum = sheetRowMap[key];
+      
+      // Update description if missing or outdated
       if (currentDesc === "" || lowerDesc.indexOf("enrolment") === -1 || lowerDesc.indexOf("competitor") === -1) {
         descriptions[key] = defaults[key];
-        var rowNum = sheetRowMap[key];
         if (rowNum) {
           indexSheet.getRange(rowNum, 2).setValue(defaults[key]);
         } else {
-          indexSheet.appendRow([key, defaults[key]]);
+          indexSheet.appendRow([key, defaults[key], defaultFields[key] || ""]);
+          continue; // row was appended, no need to update field separately
+        }
+      }
+      
+      // Update fields column (column 3)
+      if (rowNum && defaultFields[key]) {
+        var currentFields = values[rowNum - 1] && values[rowNum - 1].length >= 3 ? values[rowNum - 1][2].toString().trim() : "";
+        if (currentFields === "" || currentFields.indexOf("Academic Year") === -1) {
+          indexSheet.getRange(rowNum, 3).setValue(defaultFields[key]);
         }
       }
     }
