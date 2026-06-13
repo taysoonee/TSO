@@ -1,1 +1,0 @@
-\n# Kingsgate International School\n- **Status (Q2 2026):** Currently under ad-hoc feasibility study as part of potential market opportunities or risk analysis.\n- **Operational Risk:** Enrollment observed at critical lows (~120 students) amid reports of visa/credentialing issues. Positioned as a boutique AI-driven school but facing reputational headwinds.

@@ -1,2 +1,0 @@
-# HELP International School\n\n## 2019 Capacity Update\n- **Utilization:** 71% (1,280/1,800 seats filled). Source: Integration to Principals & Heads 2019.pptx
-\n## Startup Phase (2013/2014)\n- **Timeline:** Scheduled to open in January 2014 with an initial target of 500 students.\n- **Positioning:** Entering the Shah Alam/U4 corridor as a mid-premium domestic-focused international school.\n- **Source:** [[Education Guide - 2013.pdf]]
