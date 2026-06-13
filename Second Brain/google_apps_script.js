@@ -1,4 +1,4 @@
-// Google Apps Script Version: v1.5.0 (TSO Second Brain Secure Google Drive Router)
+// Google Apps Script Version: v1.5.1 (TSO Second Brain Secure Google Drive Router)
 /**
  * Google Apps Script for TSO Second Brain:
  * 1. Securely searches and reads live markdown/text files from your private Google Drive (.TSO folder).
@@ -322,9 +322,9 @@ function logChatToSpreadsheet(userPrompt, responseText, promptTokens, candidates
     
     var timestamp = new Date().toISOString();
     
-    // Cost calculation (Gemini 3.5 Flash: $0.075/1M input tokens, $0.30/1M output tokens)
-    var inputCost = (promptTokens || 0) * 0.000000075;
-    var outputCost = (candidatesTokens || 0) * 0.0000003;
+    // Cost calculation (Gemini 3.5 Flash: $1.50/1M input tokens, $9.00/1M output tokens)
+    var inputCost = (promptTokens || 0) * 0.0000015;
+    var outputCost = (candidatesTokens || 0) * 0.000009;
     var totalCost = inputCost + outputCost;
     
     sheet.appendRow([timestamp, userPrompt, responseText, promptTokens || 0, candidatesTokens || 0, totalCost]);
