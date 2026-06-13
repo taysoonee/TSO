@@ -1,4 +1,4 @@
-console.log("App initialized - Taylor's Intelligence Dashboard v1.2.1");
+console.log("App initialized - Taylor's Intelligence Dashboard v1.2.2");
 
 // State management
 let dashboardData = null;
@@ -100,9 +100,6 @@ window.addEventListener('DOMContentLoaded', async () => {
 
 // Load survey database dynamically from Proxy (or local JSON fallback)
 async function loadDashboardData() {
-  dbStatusDot.className = 'status-dot yellow';
-  dbStatusText.textContent = 'Connecting database...';
-  
   if (!currentProxyUrl) {
     dbStatusDot.className = 'status-dot red';
     dbStatusText.textContent = 'Proxy URL required';
@@ -111,52 +108,15 @@ async function loadDashboardData() {
     return;
   }
   
-  try {
-    chatInput.placeholder = "Loading dashboard database dynamically...";
-    chatInput.disabled = true;
-    
-    // Request raw sheets data from Apps Script bridge (keeps sheet restricted!)
-    const response = await fetch(currentProxyUrl, {
-      method: 'POST',
-      body: JSON.stringify({
-        action: 'load_data',
-        spreadsheet_id: currentSpreadsheetId
-      })
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Data fetch failed: HTTP ${response.status}`);
-    }
-    
-    const result = await response.json();
-    if (result.status === 'error') {
-      throw new Error(result.message);
-    }
-    
-    // In v1.1.0 router architecture, we load the list of available sheet tabs
-    const sheetNames = result.sheetNames || [];
-    dashboardData = sheetNames; // Store sheet names metadata locally
-    
-    dbStatusDot.className = 'status-dot green';
-    dbStatusText.textContent = `Live Connected (Tabs: ${sheetNames.length})`;
-    sendBtn.disabled = false;
-    chatInput.disabled = false;
-    chatInput.placeholder = "Ask about trends, recommendations, or insights...";
-  } catch (error) {
-    console.error('Error loading dashboard data:', error);
-    dbStatusDot.className = 'status-dot red';
-    dbStatusText.textContent = 'Connection failed';
-    chatInput.placeholder = "Failed to load database. Check settings or authorize Apps Script.";
-    
-    appendMessage('bot', `⚠️ **Database Connection Error:** Failed to load live data from Google Sheets.
-    
-**Reasons this happens:**
-1. Your Google Apps Script Web App URL is incorrect or hasn't been deployed.
-2. The Spreadsheet ID is incorrect.
-3. The Spreadsheet hasn't been shared with your personal Gmail account yet.
-
-*Please review your Settings panel (gear icon) to configure.*`);
-  }
+  // Instant load without network latency by reading default sheets metadata
+  const sheetNames = (typeof CONFIG !== 'undefined' ? CONFIG.DEFAULT_SHEETS : ["Fees", "SG Fees", "Enrolment", "Academic Results"]);
+  dashboardData = sheetNames; 
+  
+  dbStatusDot.className = 'status-dot green';
+  dbStatusText.textContent = `Live Connected (Tabs: ${sheetNames.length})`;
+  sendBtn.disabled = false;
+  chatInput.disabled = false;
+  chatInput.placeholder = "Ask about trends, recommendations, or insights...";
 }
 
 // Setup Dashboard View

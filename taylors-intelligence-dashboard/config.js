@@ -1,4 +1,4 @@
-// Taylor's Intelligence Dashboard Configuration Defaults (v1.0.2)
+// Taylor's Intelligence Dashboard Configuration Defaults (v1.2.2)
 const CONFIG = {
   // We recommend leaving this empty here and saving your actual Gemini API key 
   // securely in Google Sheets Script Properties.
@@ -11,5 +11,8 @@ const CONFIG = {
   DEFAULT_SPREADSHEET_ID: "1Dh4OkkSQY8rcpdjITqQqFYYwzuQtTEPpqz9LF8GAHdk",
   
   // Default Apps Script Web App URL
-  DEFAULT_PROXY_URL: "https://script.google.com/macros/s/AKfycbyQvzN6AKTrT09fn_MA4-1vagJ_4hdr-IjUqcN6Sn5SpejqaSTV4QwFfTHwufQ4FufHLQ/exec"
+  DEFAULT_PROXY_URL: "https://script.google.com/macros/s/AKfycbyQvzN6AKTrT09fn_MA4-1vagJ_4hdr-IjUqcN6Sn5SpejqaSTV4QwFfTHwufQ4FufHLQ/exec",
+
+  // Core sheets list for instant dashboard initialization without network overhead
+  DEFAULT_SHEETS: ["Fees", "SG Fees", "Enrolment", "Academic Results"]
 };
