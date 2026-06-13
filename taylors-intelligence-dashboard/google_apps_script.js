@@ -1,40 +1,28 @@
-// Google Apps Script Version: v1.0.2 (Taylor's Intelligence Dashboard Proxy & Data Loader)
+// Google Apps Script Version: v1.1.0 (Taylor's Intelligence Dashboard Dynamic Router & Proxy)
 /**
- * Google Apps Script for Taylor's Intelligence Dashboard to handle:
- * 1. Secure dynamic data loading (opens private spreadsheet and returns JSON database)
- * 2. Secure Chatbot proxy (attaches Gemini API key securely from Script Properties)
+ * Google Apps Script for Taylor's Intelligence Dashboard:
+ * 1. Rapid metadata load (returns only sheet names, avoiding massive downloads on startup)
+ * 2. Intelligent Routing (reads user query, asks Gemini which sheets are relevant, loads ONLY those sheets, and answers the query)
  *
- * Deploy instructions:
- * 1. Open https://script.google.com/home/projects/1tnaxWlcIYieTbbJNfT_IBSvwssoDsdD-J3AqnK2ZkDrq0VHDhAjmVzc5/edit
- * 2. Paste this code, saving the script.
- * 3. Go to project settings (gear icon) and add two Script Properties:
- *    - GEMINI_API_KEY: (Your Google AI Studio API key)
- *    - SPREADSHEET_ID: 1Dh4OkkSQY8rcpdjITqQqFYYwzuQtTEPpqz9LF8GAHdk
- * 4. Click Deploy -> New deployment -> Select type: Web App
- *    - Execute as: Me
- *    - Who has access: Anyone
- * 5. Deploy, authorize permissions, and copy the Web App URL.
+ * (Access raw code directly from your TSO GitHub repository)
  */
 
 function doPost(e) {
   try {
-    // Parse incoming JSON data
     var jsonString = e.postData.contents;
     var data = JSON.parse(jsonString);
     
-    // Route 1: Chatbot proxy request
     if (data.action === "chat") {
       return handleChatbotRequest(data);
     }
     
-    // Route 2: Live data loader (opens private spreadsheet by ID and outputs JSON)
     if (data.action === "load_data") {
       return handleLoadData(data);
     }
     
     return ContentService.createTextOutput(JSON.stringify({
       status: "error",
-      message: "Invalid action. Supported actions: 'load_data', 'chat'."
+      message: "Invalid action."
     })).setMimeType(ContentService.MimeType.JSON);
     
   } catch (error) {
@@ -46,7 +34,7 @@ function doPost(e) {
 }
 
 /**
- * Reads worksheets from the private spreadsheet and returns a structured JSON
+ * Returns only the sheet names in the workbook (extremely fast load)
  */
 function handleLoadData(data) {
   try {
@@ -54,58 +42,24 @@ function handleLoadData(data) {
     if (!spreadsheetId) {
       return ContentService.createTextOutput(JSON.stringify({
         status: "error",
-        message: "Spreadsheet ID is missing in request and Script Properties."
+        message: "Spreadsheet ID is missing."
       })).setMimeType(ContentService.MimeType.JSON);
     }
     
     var ss = SpreadsheetApp.openById(spreadsheetId);
     var sheets = ss.getSheets();
-    var payload = {};
+    var sheetNames = [];
     
     sheets.forEach(function(sheet) {
       var name = sheet.getName();
-      // Skip chat log sheet to avoid inflating database context size
-      if (name === "Chat Logs") return;
-      
-      var range = sheet.getDataRange();
-      var values = range.getValues();
-      if (values.length > 0) {
-        // Clean header keys
-        var headers = values[0].map(function(h) {
-          return h.toString().trim();
-        });
-        
-        var rows = [];
-        for (var i = 1; i < values.length; i++) {
-          var row = values[i];
-          var rowObj = {};
-          var hasValue = false;
-          
-          headers.forEach(function(header, colIdx) {
-            if (header !== "") {
-              var val = row[colIdx];
-              // Format Date objects to ISO date strings
-              if (val instanceof Date) {
-                val = val.toISOString().split('T')[0];
-              }
-              rowObj[header] = val;
-              if (val !== null && val !== "") {
-                hasValue = true;
-              }
-            }
-          });
-          
-          if (hasValue) {
-            rows.push(rowObj);
-          }
-        }
-        payload[name] = rows;
+      if (name !== "Chat Logs") {
+        sheetNames.push(name);
       }
     });
     
     return ContentService.createTextOutput(JSON.stringify({
       status: "success",
-      data: payload
+      sheetNames: sheetNames
     })).setMimeType(ContentService.MimeType.JSON);
     
   } catch (err) {
@@ -117,94 +71,154 @@ function handleLoadData(data) {
 }
 
 /**
- * Secure Chatbot request handler
+ * Intelligent Dynamic Routing Chat Handler
  */
 function handleChatbotRequest(data) {
   try {
     var prompt = data.prompt;
     var history = data.history || [];
-    var systemPrompt = data.systemPrompt || "";
     
     var apiKey = PropertiesService.getScriptProperties().getProperty("GEMINI_API_KEY");
+    var spreadsheetId = data.spreadsheet_id || PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");
+    
     if (!apiKey) {
       return ContentService.createTextOutput(JSON.stringify({
         status: "error",
         message: "API Key not configured in Script Properties."
       })).setMimeType(ContentService.MimeType.JSON);
     }
-    
-    var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=" + apiKey;
-    
-    var contents = history.map(function(h) {
-      return {
-        role: h.role,
-        parts: [{ text: h.content }]
-      };
-    });
-    
-    contents.push({
-      role: "user",
-      parts: [{ text: prompt }]
-    });
-    
-    var payload = {
-      contents: contents,
-      systemInstruction: {
-        parts: [{ text: systemPrompt }]
-      },
-      generationConfig: {
-        temperature: 0.15,
-        maxOutputTokens: 2048
-      }
-    };
-    
-    var options = {
-      method: "post",
-      contentType: "application/json",
-      payload: JSON.stringify(payload),
-      muteHttpExceptions: true
-    };
-    
-    var response = UrlFetchApp.fetch(url, options);
-    var responseText = response.getContentText();
-    var responseCode = response.getResponseCode();
-    
-    if (responseCode !== 200) {
+    if (!spreadsheetId) {
       return ContentService.createTextOutput(JSON.stringify({
         status: "error",
-        message: "Gemini API returned status " + responseCode + ": " + responseText
+        message: "Spreadsheet ID not configured."
       })).setMimeType(ContentService.MimeType.JSON);
     }
     
-    var result = JSON.parse(responseText);
+    var ss = SpreadsheetApp.openById(spreadsheetId);
+    var sheets = ss.getSheets();
+    var allSheetNames = [];
+    sheets.forEach(function(s) {
+      if (s.getName() !== "Chat Logs") allSheetNames.push(s.getName());
+    });
+    
+    // Step 1: Query Gemini to find out which sheets are relevant to the user query
+    var routingPrompt = "You are a database router. Given a user query and a list of sheet names, determine which sheets are relevant to answer the query. Return ONLY a valid JSON list of strings (matching the exact sheet names). Do not add any explanation or markdown formatting.\n\n" +
+                        "Sheet Names: " + JSON.stringify(allSheetNames) + "\n\n" +
+                        "User Query: \"" + prompt + "\"\n\n" +
+                        "Response format: [\"SheetName1\", \"SheetName2\"]";
+                        
+    var routerUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=" + apiKey;
+    var routerPayload = {
+      contents: [{ role: "user", parts: [{ text: routingPrompt }] }],
+      generationConfig: { temperature: 0.0, responseMimeType: "application/json" }
+    };
+    
+    var routerOptions = {
+      method: "post",
+      contentType: "application/json",
+      payload: JSON.stringify(routerPayload),
+      muteHttpExceptions: true
+    };
+    
+    var routerResponse = UrlFetchApp.fetch(routerUrl, routerOptions);
+    var routerText = JSON.parse(routerResponse.getContentText());
+    var selectedSheets = [];
+    
+    try {
+      var rawJson = routerText.candidates[0].content.parts[0].text;
+      selectedSheets = JSON.parse(rawJson);
+    } catch (routeErr) {
+      // Fallback: if router fails, load all sheets to be safe
+      selectedSheets = allSheetNames;
+    }
+    
+    // Step 2: Load data ONLY from the selected sheets
+    var loadedData = {};
+    selectedSheets.forEach(function(sheetName) {
+      var sheet = ss.getSheetByName(sheetName);
+      if (sheet) {
+        var range = sheet.getDataRange();
+        var values = range.getValues();
+        if (values.length > 0) {
+          var headers = values[0].map(function(h) { return h.toString().trim(); });
+          var rows = [];
+          for (var i = 1; i < values.length; i++) {
+            var row = values[i];
+            var rowObj = {};
+            var hasValue = false;
+            headers.forEach(function(header, colIdx) {
+              if (header !== "") {
+                var val = row[colIdx];
+                if (val instanceof Date) {
+                  val = val.toISOString().split('T')[0];
+                }
+                rowObj[header] = val;
+                if (val !== null && val !== "") hasValue = true;
+              }
+            });
+            if (hasValue) rows.push(rowObj);
+          }
+          loadedData[sheetName] = rows;
+        }
+      }
+    });
+    
+    // Step 3: Run the final analysis query with Gemini using the filtered dataset
+    var systemPrompt = "You are \"Taylor's Schools Intelligence Bot\", a data analyst assistant.\n" +
+                        "Answer user queries strictly grounded in the provided JSON dataset.\n\n" +
+                        "DATA CONTEXT (Filtered/Loaded Sheets: " + JSON.stringify(Object.keys(loadedData)) + "):\n" +
+                        JSON.stringify(loadedData) + "\n\n" +
+                        "INSTRUCTIONS:\n" +
+                        "1. Ground answers strictly in the provided JSON dataset.\n" +
+                        "2. Formulate answers using clear categories, bullet points, and tables.\n" +
+                        "3. Be concise and professional.\n" +
+                        "4. If the data is missing from the selected sheets, indicate which sheets were searched (" + JSON.stringify(Object.keys(loadedData)) + ") and ask the user to clarify.";
+                        
+    var contents = history.map(function(h) {
+      return { role: h.role, parts: [{ text: h.content }] };
+    });
+    contents.push({ role: "user", parts: [{ text: prompt }] });
+    
+    var finalPayload = {
+      contents: contents,
+      systemInstruction: { parts: [{ text: systemPrompt }] },
+      generationConfig: { temperature: 0.15, maxOutputTokens: 2048 }
+    };
+    
+    var finalOptions = {
+      method: "post",
+      contentType: "application/json",
+      payload: JSON.stringify(finalPayload),
+      muteHttpExceptions: true
+    };
+    
+    var finalResponse = UrlFetchApp.fetch(routerUrl, finalOptions);
+    var resultText = finalResponse.getContentText();
+    var result = JSON.parse(resultText);
     var botText = result.candidates[0].content.parts[0].text;
     
-    // Log the conversation to "Chat Logs" tab in the spreadsheet
+    // Step 4: Log conversation to Chat Logs
     try {
-      var spreadsheetId = data.spreadsheet_id || PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");
-      var ss = spreadsheetId ? SpreadsheetApp.openById(spreadsheetId) : null;
-      if (ss) {
-        var logSheet = ss.getSheetByName("Chat Logs");
-        if (!logSheet) {
-          logSheet = ss.insertSheet("Chat Logs");
-          logSheet.appendRow(["Timestamp", "User Query", "Bot Response", "Est. Input Tokens", "Est. Output Tokens", "Est. Cost ($)"]);
-        }
-        
-        var estInputTokens = Math.ceil(JSON.stringify(payload).length / 4);
-        var estOutputTokens = Math.ceil(botText.length / 4);
-        var estCost = (estInputTokens * 7.5e-8) + (estOutputTokens * 3e-7);
-        
-        logSheet.appendRow([
-          new Date(), 
-          prompt, 
-          botText, 
-          estInputTokens, 
-          estOutputTokens, 
-          Number(estCost.toFixed(6))
-        ]);
+      var logSheet = ss.getSheetByName("Chat Logs");
+      if (!logSheet) {
+        logSheet = ss.insertSheet("Chat Logs");
+        logSheet.appendRow(["Timestamp", "User Query", "Sheets Loaded", "Bot Response", "Est. Input Tokens", "Est. Output Tokens", "Est. Cost ($)"]);
       }
+      var estInputTokens = Math.ceil(JSON.stringify(finalPayload).length / 4);
+      var estOutputTokens = Math.ceil(botText.length / 4);
+      var estCost = (estInputTokens * 7.5e-8) + (estOutputTokens * 3e-7);
+      
+      logSheet.appendRow([
+        new Date(), 
+        prompt, 
+        JSON.stringify(Object.keys(loadedData)),
+        botText, 
+        estInputTokens, 
+        estOutputTokens, 
+        Number(estCost.toFixed(6))
+      ]);
     } catch (logErr) {
-      Logger.log("Failed to log conversation: " + logErr.toString());
+      Logger.log("Failed to log: " + logErr.toString());
     }
     
     return ContentService.createTextOutput(JSON.stringify({

@@ -1,4 +1,4 @@
-console.log("App initialized - Taylor's Intelligence Dashboard v1.1.1");
+console.log("App initialized - Taylor's Intelligence Dashboard v1.2.0");
 
 // State management
 let dashboardData = null;
@@ -133,10 +133,12 @@ async function loadDashboardData() {
       throw new Error(result.message);
     }
     
-    dashboardData = result.data;
+    // In v1.1.0 router architecture, we load the list of available sheet tabs
+    const sheetNames = result.sheetNames || [];
+    dashboardData = sheetNames; // Store sheet names metadata locally
     
     dbStatusDot.className = 'status-dot green';
-    dbStatusText.textContent = `Live Connected (Sheets: ${Object.keys(dashboardData).length})`;
+    dbStatusText.textContent = `Live Connected (Tabs: ${sheetNames.length})`;
     sendBtn.disabled = false;
     chatInput.disabled = false;
     chatInput.placeholder = "Ask about trends, recommendations, or insights...";
@@ -311,26 +313,12 @@ async function handleSendMessage() {
 
 // Send Request to Gemini API
 async function callGeminiAPI(promptText) {
-  const systemPrompt = `You are "Taylor's Schools Intelligence Bot", a data analyst assistant.
-You are helping administrative teams analyze data, trends, and key metrics.
-All answers must be strictly accurate and grounded in the provided JSON dataset.
-
-DATA CONTEXT (All sheets parsed from Google Sheets):
-${JSON.stringify(dashboardData)}
-
-INSTRUCTIONS:
-1. Ground answers strictly in the provided JSON dataset.
-2. Formulate answers using clear categories, bullet points, bold tags, and markdown tables where appropriate.
-3. Be professional, concise, and focused on operational insights.
-4. If the database lacks information, explain that you don't find it in the current sheets.`;
-
   // Proxy Call (Option A)
   if (currentProxyUrl) {
     const proxyBody = {
       action: 'chat',
       prompt: promptText,
       history: currentHistory.map(h => ({ role: h.role, content: h.content })),
-      systemPrompt: systemPrompt,
       spreadsheet_id: currentSpreadsheetId
     };
 
