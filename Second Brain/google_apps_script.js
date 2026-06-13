@@ -1,4 +1,4 @@
-// Google Apps Script Version: v1.3.4 (TSO Second Brain Secure Google Drive Router)
+// Google Apps Script Version: v1.4.0 (TSO Second Brain Secure Google Drive Router)
 /**
  * Google Apps Script for TSO Second Brain:
  * 1. Securely searches and reads live markdown/text files from your private Google Drive (.TSO folder).
@@ -80,12 +80,12 @@ function handleChatbotRequest(data) {
     // Call Gemini API
     var responseText = callGemini(apiKey, userPrompt, history, context);
     
-    // Log conversation to Google Drive
+    // Log conversation to Google Sheet
     var logWarning = "";
     try {
-      logChatToDrive(folder, userPrompt, responseText);
+      logChatToSpreadsheet(userPrompt, responseText);
     } catch (logErr) {
-      logWarning = "\n\n⚠️ **Chat Logging Warning**: " + logErr.toString() + " (Please verify your Google Drive sharing/write permissions for the resolved folder).";
+      logWarning = "\n\n⚠️ **Chat Logging Warning**: " + logErr.toString() + " (Please verify your Google Sheet authorization and access permissions).";
     }
     
     return ContentService.createTextOutput(JSON.stringify({
@@ -298,7 +298,7 @@ function callGemini(apiKey, prompt, history, context) {
   return json.candidates[0].content.parts[0].text;
 }
 
-function logChatToDrive(folder, userPrompt, responseText) {
+function logChatToSpreadsheet(userPrompt, responseText) {
   var lock = LockService.getScriptLock();
   try {
     lock.waitLock(15000); // 15-second timeout to prevent concurrent write corruption
@@ -307,37 +307,20 @@ function logChatToDrive(folder, userPrompt, responseText) {
   }
 
   try {
-    // 1. Resolve targeting subfolder 'Reports' (which maps to TSO_Reports locally)
-    var targetFolder = folder;
-    var subFolders = folder.getFolders();
-    while (subFolders.hasNext()) {
-      var sub = subFolders.next();
-      if (sub.getName().toLowerCase() === "reports") {
-        targetFolder = sub;
-        break;
-      }
-    }
-
-    var logFileName = "chat_history.jsonl";
-    var logEntry = {
-      timestamp: new Date().toISOString(),
-      user: userPrompt,
-      model: responseText
-    };
-    var logLine = JSON.stringify(logEntry) + "\n";
-
-    var files = targetFolder.getFilesByName(logFileName);
-    var logFile;
-    if (files.hasNext()) {
-      logFile = files.next();
-      var existingContent = logFile.getAs("text/plain").getDataAsString();
-      logFile.setContent(existingContent + logLine);
-    } else {
-      targetFolder.createFile(logFileName, logLine, "text/plain");
-    }
+    var sheetId = "1Pge1hWSyIii7IAUim4U_s4wMHywHZR3RdCicnQ_xXZ0";
+    var ss = SpreadsheetApp.openById(sheetId);
+    var sheet = ss.getSheets()[0]; // Append to the first sheet tab
+    
+    var timestamp = new Date().toISOString();
+    sheet.appendRow([timestamp, userPrompt, responseText]);
   } catch (e) {
-    throw new Error("Failed to write to folder '" + targetFolder.getName() + "': " + e.toString());
+    throw new Error("Failed to write to Google Sheet: " + e.toString());
   } finally {
     lock.releaseLock();
   }
+}
+
+function auth() {
+  DriveApp.getRootFolder();
+  SpreadsheetApp.getActiveSpreadsheet();
 }
