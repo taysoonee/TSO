@@ -1,4 +1,4 @@
-// Google Apps Script Version: v1.1.1 (Taylor's Intelligence Dashboard Dynamic Router & Proxy)
+// Google Apps Script Version: v1.1.2 (Taylor's Intelligence Dashboard Dynamic Router & Proxy)
 /**
  * Google Apps Script for Taylor's Intelligence Dashboard:
  * 1. Rapid metadata load (returns only sheet names, avoiding massive downloads on startup)
@@ -103,8 +103,8 @@ function handleChatbotRequest(data) {
     
     // Metadata dictionary defining the contents of key tabs to help the router make perfect decisions
     var sheetDescriptions = {
-      "Fees": "Contains tuition fees, application fees, registration fees, deposit rates, and recurring annual/term fees by year group for Malaysian schools.",
-      "SG Fees": "Contains tuition fees, registration fees, deposit rates, and recurring school fees for Singaporean schools.",
+      "Fees": "Contains tuition/school fees, AND academic exam results (IB average score, IB student counts for 45/44/>=40/pass, A-Level A*/A/B/C/pass counts, IGCSE A*/A/B/C/pass counts, and HSC Bands 1-6) for Malaysian schools.",
+      "SG Fees": "Contains tuition/school fees, AND academic exam results (IB average score, IB student counts for 45/44/>=40/pass, A-Level A*/A/B/C/pass counts, IGCSE A*/A/B/C/pass counts, and HSC Bands 1-6) for Singaporean schools.",
       "Enrolment": "Contains student enrolment numbers, school capacity, class capacities, intake stats, and historical headcount figures.",
       "Academic Results": "Contains historical examination results, including IGCSE pass rates, A-Level grades, IBDP scores, and student academic performance records."
     };
