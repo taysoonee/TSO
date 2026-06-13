@@ -1,4 +1,4 @@
-console.log("App initialized - Taylor's Intelligence Dashboard v1.2.2");
+console.log("App initialized - Taylor's Intelligence Dashboard v1.2.3");
 
 // State management
 let dashboardData = null;
@@ -117,6 +117,32 @@ async function loadDashboardData() {
   sendBtn.disabled = false;
   chatInput.disabled = false;
   chatInput.placeholder = "Ask about trends, recommendations, or insights...";
+  
+  // Progressive background load to sync with the real, live Google Sheet structure
+  fetchLiveSheetMetadata();
+}
+
+async function fetchLiveSheetMetadata() {
+  try {
+    // Silently fetch current sheet names in the background
+    const response = await fetch(currentProxyUrl, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'load_data',
+        spreadsheet_id: currentSpreadsheetId
+      })
+    });
+    
+    if (!response.ok) return;
+    
+    const result = await response.json();
+    if (result.status === 'success' && result.sheetNames) {
+      dashboardData = result.sheetNames; // Update with true live sheets list
+      dbStatusText.textContent = `Live Connected (Tabs: ${result.sheetNames.length})`;
+    }
+  } catch (err) {
+    console.log("Silent background metadata sync failed:", err);
+  }
 }
 
 // Setup Dashboard View
