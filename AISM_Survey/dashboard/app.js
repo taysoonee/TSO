@@ -17,6 +17,11 @@ if (currentProxyUrl === null || currentProxyUrl === '') {
   currentProxyUrl = (typeof CONFIG !== 'undefined' ? CONFIG.DEFAULT_PROXY_URL : '');
 }
 
+let currentPasskey = localStorage.getItem('g_proxy_passkey');
+if (currentPasskey === null) {
+  currentPasskey = '';
+}
+
 let chatHistory = [];
 
 // DOM elements
@@ -32,6 +37,7 @@ const saveSettingsBtn = document.getElementById('save-settings-btn');
 const settingsModal = document.getElementById('settings-modal');
 const settingApiKey = document.getElementById('setting-api-key');
 const settingProxyUrl = document.getElementById('setting-proxy-url');
+const settingProxyPasskey = document.getElementById('setting-proxy-passkey');
 const settingEmbedUrl = document.getElementById('setting-embed-url');
 const toggleKeyVisibility = document.getElementById('toggle-key-visibility');
 const dashboardIframe = document.getElementById('dashboard-iframe');
@@ -56,6 +62,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   // Set initial settings inputs
   settingApiKey.value = currentApiKey;
   settingProxyUrl.value = currentProxyUrl;
+  settingProxyPasskey.value = currentPasskey;
   settingEmbedUrl.value = currentEmbedUrl;
   
   // Setup Dashboard
@@ -152,26 +159,32 @@ async function loadSurveyData() {
     let isLive = false;
     let responseCount = surveyData.raw_survey_responses ? surveyData.raw_survey_responses.length : 0;
     
-    // 2. Attempt to fetch live data from the Google Sheet
-    dbStatusText.textContent = 'Connecting to Google Sheet...';
+    // 2. Attempt to fetch live data from the Google Sheet via proxy Web App
+    dbStatusText.textContent = 'Connecting to Google Sheet via proxy...';
     try {
-      const sheetUrl = 'https://docs.google.com/spreadsheets/d/16A679ao7uFlsPQCPTY-JzLsF7G1Gpcfs_tKcLbjvSYU/export?format=csv&gid=834364586';
-      const sheetRes = await fetch(sheetUrl);
-      if (sheetRes.ok) {
-        const csvText = await sheetRes.text();
-        const parsedCsv = parseCSV(csvText);
-        
-        if (parsedCsv && parsedCsv.length > 1) {
-          const liveRecords = processLiveCSV(parsedCsv);
-          if (liveRecords.length > 0) {
-            surveyData.raw_survey_responses = liveRecords;
-            responseCount = liveRecords.length;
+      if (currentProxyUrl) {
+        const sheetRes = await fetch(currentProxyUrl, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'get_data',
+            passkey: currentPasskey
+          })
+        });
+        if (sheetRes.ok) {
+          const result = await sheetRes.json();
+          if (result.status === 'success' && Array.isArray(result.data)) {
+            surveyData.raw_survey_responses = result.data;
+            responseCount = result.data.length;
             isLive = true;
+          } else {
+            console.warn('Proxy data fetch error:', result.message);
           }
         }
+      } else {
+        console.warn('Google Apps Script proxy URL not configured.');
       }
     } catch (sheetErr) {
-      console.warn('Could not load live Google Sheet data, using static fallback:', sheetErr);
+      console.warn('Could not load live survey data, using static fallback:', sheetErr);
     }
     
     dbStatusDot.className = 'status-dot green';
@@ -296,6 +309,7 @@ function toggleModal(show) {
     settingsModal.classList.remove('hidden');
     settingApiKey.value = currentApiKey;
     settingProxyUrl.value = currentProxyUrl;
+    settingProxyPasskey.value = currentPasskey;
     settingEmbedUrl.value = currentEmbedUrl;
   } else {
     settingsModal.classList.add('hidden');
@@ -306,10 +320,12 @@ function toggleModal(show) {
 function saveSettings() {
   currentApiKey = settingApiKey.value.trim();
   currentProxyUrl = settingProxyUrl.value.trim();
+  currentPasskey = settingProxyPasskey.value.trim();
   currentEmbedUrl = settingEmbedUrl.value.trim();
   
   localStorage.setItem('g_api_key', currentApiKey);
   localStorage.setItem('g_proxy_url', currentProxyUrl);
+  localStorage.setItem('g_proxy_passkey', currentPasskey);
   localStorage.setItem('g_embed_url', currentEmbedUrl);
   
   initDashboard();
@@ -319,7 +335,10 @@ function saveSettings() {
     sendBtn.disabled = !(currentApiKey || currentProxyUrl);
   }
   
-  appendMessage('bot', `⚙️ **Settings updated successfully!** Dashboard reloaded and API authentication updated.`);
+  // Reload the live database using the new proxy credentials
+  loadSurveyData();
+  
+  appendMessage('bot', `⚙️ **Settings updated successfully!** Dashboard reloaded and API credentials updated.`);
 }
 
 // Render Welcome Message
@@ -475,7 +494,7 @@ INSTRUCTIONS:
     },
     generationConfig: {
       temperature: 0.15,
-      maxOutputTokens: 2048
+      maxOutputTokens: 8192
     }
   };
 
@@ -484,7 +503,8 @@ INSTRUCTIONS:
       action: 'chat',
       prompt: promptText,
       history: chatHistory.map(h => ({ role: h.role, content: h.parts?.[0]?.text || h.content })),
-      systemPrompt: systemPrompt
+      systemPrompt: systemPrompt,
+      passkey: currentPasskey
     };
 
     const response = await fetch(currentProxyUrl, {
@@ -601,13 +621,14 @@ function parseMarkdown(text) {
     // Ordered lists
     const numMatch = line.match(/^(\d+)\.\s(.*)/);
     if (numMatch) {
+      const itemNum = parseInt(numMatch[1], 10);
       if (!inList || listType !== 'ol') {
         if (inList) { html += `</${listType}>`; }
-        html += '<ol>';
+        html += `<ol start="${itemNum}">`;
         inList = true;
         listType = 'ol';
       }
-      html += `<li>${formatInline(numMatch[2].trim())}</li>`;
+      html += `<li value="${itemNum}">${formatInline(numMatch[2].trim())}</li>`;
       continue;
     }
 

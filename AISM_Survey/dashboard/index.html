@@ -133,6 +133,11 @@
           <p class="form-help">Option B: Use your Google Sheets Apps Script Web App URL to query Gemini securely without exposing keys.</p>
         </div>
         <div class="form-group">
+          <label for="setting-proxy-passkey">Proxy Passkey (Optional)</label>
+          <input type="password" id="setting-proxy-passkey" placeholder="Enter proxy verification passkey">
+          <p class="form-help">If configured in Google Script properties, this verifies your requests to fetch data and use the chatbot.</p>
+        </div>
+        <div class="form-group">
           <label for="setting-embed-url">Looker Studio Embed URL</label>
           <input type="url" id="setting-embed-url" placeholder="https://lookerstudio.google.com/embed/reporting/...">
           <p class="form-help">Paste the Looker Studio embed URL (File -> Embed report -> Enable embedding -> Copy the URL inside the src attribute of the iframe).</p>
