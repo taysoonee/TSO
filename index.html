@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TSO Master Dashboard</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="background-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <main class="dashboard">
+        <header class="header">
+            <div class="header-content">
+                <h1>TSO Hub</h1>
+                <p>Master Dashboard</p>
+            </div>
+            <div class="search-container">
+                <i data-lucide="search" class="search-icon"></i>
+                <input type="text" id="searchInput" placeholder="Search projects or tags...">
+            </div>
+        </header>
+
+        <div class="grid-container" id="projectGrid">
+            <!-- Project 1 -->
+            <a href="./taylors-intelligence-dashboard/index.html" class="glass-card project-card">
+                <div class="card-header">
+                    <div class="icon-wrapper emerald-glow">
+                        <i data-lucide="brain-circuit"></i>
+                    </div>
+                    <i data-lucide="arrow-up-right" class="link-icon"></i>
+                </div>
+                <div class="card-content">
+                    <h2>Taylor's Intelligence Dashboard</h2>
+                    <p class="description">Centralized insights and intelligence platform for Taylor's operations.</p>
+                    <div class="tags">
+                        <span class="tag">Dashboard</span>
+                        <span class="tag">Intelligence</span>
+                        <span class="tag">Data</span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Project 2 -->
+            <a href="./AISM_Survey/index.html" class="glass-card project-card">
+                <div class="card-header">
+                    <div class="icon-wrapper violet-glow">
+                        <i data-lucide="line-chart"></i>
+                    </div>
+                    <i data-lucide="arrow-up-right" class="link-icon"></i>
+                </div>
+                <div class="card-content">
+                    <h2>AISM Parent Feedback & Analytics Portal</h2>
+                    <p class="description">Analytics and feedback portal for AISM parents.</p>
+                    <div class="tags">
+                        <span class="tag">Analytics</span>
+                        <span class="tag">Portal</span>
+                        <span class="tag">Feedback</span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Project 3 -->
+            <a href="./Second Brain/index.html" class="glass-card project-card">
+                <div class="card-header">
+                    <div class="icon-wrapper gold-glow">
+                        <i data-lucide="network"></i>
+                    </div>
+                    <i data-lucide="arrow-up-right" class="link-icon"></i>
+                </div>
+                <div class="card-content">
+                    <h2>TSO Second Brain Assistant</h2>
+                    <p class="description">AI-powered knowledge management and second brain assistant.</p>
+                    <div class="tags">
+                        <span class="tag">AI</span>
+                        <span class="tag">Assistant</span>
+                        <span class="tag">Knowledge</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
