@@ -10,8 +10,6 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Google Sign-In SDK -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <!-- CSS -->
     <link rel="stylesheet" href="style.css">
     <meta name="robots" content="noindex, nofollow">
@@ -23,17 +21,17 @@
         <div class="orb orb-3"></div>
     </div>
 
-    <!-- Google Authentication Overlay -->
+    <!-- Password Access Overlay -->
     <div id="authOverlay" class="auth-overlay">
         <div class="auth-card glass-panel">
             <div class="auth-header">
                 <i data-lucide="lock" class="auth-lock-icon emerald-glow"></i>
                 <h2>TSO Portal Access</h2>
-                <p>Please sign in with your Taylor's Schools Google Account to proceed.</p>
+                <p>Please enter the access key to proceed.</p>
             </div>
             <div class="auth-body">
-                <!-- Google Sign In Button Container -->
-                <div id="gSignInButton"></div>
+                <input type="password" id="passwordInput" placeholder="Access Key" style="width: 100%; padding: 1rem; border-radius: 1rem; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); color: #fff; text-align: center; font-family: inherit; font-size: 1.1rem; margin-bottom: 0.5rem;" autofocus>
+                <button id="unlockBtn" style="width: 100%; padding: 1rem; border-radius: 1rem; background: linear-gradient(135deg, var(--emerald), #047857); border: none; color: #fff; font-family: inherit; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">Unlock Portal</button>
                 <p id="authError" class="auth-error-text"></p>
             </div>
         </div>

@@ -1,75 +1,57 @@
-// Initialize Google Identity Services
-const GOOGLE_CLIENT_ID = "764086051850-6qr4p6gpi6hn506pt8ejuq83di341hur.apps.googleusercontent.com"; // Workspace Taylor's Schools Client ID
-const ALLOWED_DOMAIN = "taylorsschools.com";
+// Initialize Lucide Icons
+lucide.createIcons();
 
-// Base64 JWT decoder helper
-function parseJwt(token) {
-    try {
-        const base64Url = token.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
-        return JSON.parse(jsonPayload);
-    } catch (e) {
-        return null;
-    }
+// SHA-256 Hashing helper
+async function sha256(message) {
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// Google Sign-In Callback
-window.handleCredentialResponse = (response) => {
-    const data = parseJwt(response.credential);
-    if (data && data.email_verified) {
-        const email = data.email;
-        if (email.endsWith("@" + ALLOWED_DOMAIN)) {
-            sessionStorage.setItem('tso_authenticated_email', email);
-            unlockDashboard();
-        } else {
-            const errorText = document.getElementById('authError');
-            errorText.textContent = `Access Denied: ${email} is not authorized. You must sign in with a @${ALLOWED_DOMAIN} account.`;
-        }
-    } else {
-        document.getElementById('authError').textContent = "Google Authentication failed. Please try again.";
-    }
-};
-
-function unlockDashboard() {
-    const authOverlay = document.getElementById('authOverlay');
-    const dashboardContent = document.getElementById('dashboardContent');
-    authOverlay.style.opacity = '0';
-    setTimeout(() => {
-        authOverlay.style.display = 'none';
-        dashboardContent.style.display = 'block';
-        lucide.createIcons();
-    }, 500);
-}
+// Hashed TSO password (Pre-computed hash of "TSO2026")
+const TSO_HASH = "e3494e6fa1a8de4dd913fb8526790e369fd903e8ca1a5f5770bb6496a5c27a51";
 
 document.addEventListener('DOMContentLoaded', () => {
     const authOverlay = document.getElementById('authOverlay');
     const dashboardContent = document.getElementById('dashboardContent');
+    const passwordInput = document.getElementById('passwordInput');
+    const unlockBtn = document.getElementById('unlockBtn');
+    const errorMsg = document.getElementById('authError');
     const searchInput = document.getElementById('searchInput');
     const projectCards = document.querySelectorAll('.project-card');
 
     // Check if already authenticated in this session
-    const savedEmail = sessionStorage.getItem('tso_authenticated_email');
-    if (savedEmail && savedEmail.endsWith("@" + ALLOWED_DOMAIN)) {
+    if (sessionStorage.getItem('tso_authenticated') === 'true') {
         authOverlay.style.display = 'none';
         dashboardContent.style.display = 'block';
-        lucide.createIcons();
-    } else {
-        // Initialize Google Sign-In button
-        window.onload = function () {
-            google.accounts.id.initialize({
-                client_id: GOOGLE_CLIENT_ID,
-                callback: window.handleCredentialResponse
-            });
-            google.accounts.id.renderButton(
-                document.getElementById("gSignInButton"),
-                { theme: "outline", size: "large", width: "240" }
-            );
-            google.accounts.id.prompt(); // also display the One Tap dialog
-        };
     }
+
+    // Unlock handler
+    async function handleUnlock() {
+        const password = passwordInput.value;
+        const hashedInput = await sha256(password);
+
+        if (hashedInput === TSO_HASH) {
+            sessionStorage.setItem('tso_authenticated', 'true');
+            // Transition effect
+            authOverlay.style.opacity = '0';
+            setTimeout(() => {
+                authOverlay.style.display = 'none';
+                dashboardContent.style.display = 'block';
+                lucide.createIcons(); // Re-render icons once dashboard is visible
+            }, 500);
+        } else {
+            errorMsg.textContent = "Invalid access key. Please try again.";
+            passwordInput.value = '';
+            passwordInput.focus();
+        }
+    }
+
+    unlockBtn.addEventListener('click', handleUnlock);
+    passwordInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleUnlock();
+    });
 
     // Search functionality
     searchInput.addEventListener('input', (e) => {
