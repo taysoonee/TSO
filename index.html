@@ -3,15 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TSO Master Dashboard</title>
+    <title>TSO Dashboard</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Sign-In SDK -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <!-- CSS -->
     <link rel="stylesheet" href="style.css">
+    <meta name="robots" content="noindex, nofollow">
 </head>
 <body>
     <div class="background-orbs">
@@ -20,11 +23,28 @@
         <div class="orb orb-3"></div>
     </div>
 
-    <main class="dashboard">
+    <!-- Google Authentication Overlay -->
+    <div id="authOverlay" class="auth-overlay">
+        <div class="auth-card glass-panel">
+            <div class="auth-header">
+                <i data-lucide="lock" class="auth-lock-icon emerald-glow"></i>
+                <h2>TSO Portal Access</h2>
+                <p>Please sign in with your Taylor's Schools Google Account to proceed.</p>
+            </div>
+            <div class="auth-body">
+                <!-- Google Sign In Button Container -->
+                <div id="gSignInButton"></div>
+                <p id="authError" class="auth-error-text"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Colleague Dashboard Content (Hidden by default) -->
+    <main class="dashboard" id="dashboardContent" style="display: none;">
         <header class="header">
             <div class="header-content">
                 <h1>TSO Hub</h1>
-                <p>Master Dashboard</p>
+                <p>Colleague Portal</p>
             </div>
             <div class="search-container">
                 <i data-lucide="search" class="search-icon"></i>
